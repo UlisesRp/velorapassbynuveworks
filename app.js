@@ -1,26 +1,9 @@
-const VOUCHER_KEY = "veloraPassVouchersV1";
-const QUOTE_KEY = "veloraPassQuotesV1";
 const $ = (s, root=document) => root.querySelector(s);
 const $$ = (s, root=document) => [...root.querySelectorAll(s)];
 
-const getStore = key => { try { return JSON.parse(localStorage.getItem(key)) || []; } catch { return []; } };
-const saveStore = (key, items) => localStorage.setItem(key, JSON.stringify(items));
-const getVouchers = () => getStore(VOUCHER_KEY);
-const getQuotes = () => getStore(QUOTE_KEY);
-const saveVouchers = items => saveStore(VOUCHER_KEY, items);
-const saveQuotes = items => saveStore(QUOTE_KEY, items);
-
-function cryptoChunk(){
-  return (crypto.randomUUID ? crypto.randomUUID().replaceAll("-","") : Date.now().toString(36)+Math.random().toString(36).slice(2)).toUpperCase();
-}
-function makeCode(prefix, existing){
-  const stamp = new Date().toISOString().slice(2,10).replaceAll("-","");
-  const code = `${prefix}-${stamp}-${cryptoChunk().slice(0,10)}`;
-  if(existing.has(code)) return makeCode(prefix, existing);
-  return code;
-}
-function makeVoucherCode(){ return makeCode("VL", new Set(getVouchers().map(x=>x.folio))); }
-function makeQuoteCode(){ return makeCode("COT", new Set(getQuotes().map(x=>x.folio))); }
+let voucherCache = [];
+let quoteCache = [];
+let refreshInFlight = false;
 
 function escapeHtml(str=""){
   return String(str).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
@@ -43,8 +26,66 @@ function dayDiff(a,b){
   return nights<0?null:{nights,days:nights+1};
 }
 function toast(msg){
-  const el=$("#toast"); el.textContent=msg; el.classList.add("show");
-  clearTimeout(window.__toast); window.__toast=setTimeout(()=>el.classList.remove("show"),2200);
+  const el=$("#toast");
+  el.textContent=msg;
+  el.classList.add("show");
+  clearTimeout(window.__toast);
+  window.__toast=setTimeout(()=>el.classList.remove("show"),2400);
+}
+function friendlyDbError(error){
+  console.error(error);
+  return error?.message || "Ocurrió un error al guardar la información.";
+}
+
+function normalizeVoucher(row){
+  return {
+    id: row.id,
+    folio: row.code,
+    publicToken: row.public_token,
+    ...(row.payload || {}),
+    status: row.status,
+    createdAt: row.created_at,
+    viewedAt: row.viewed_at,
+    signedAt: row.signed_at,
+    signerName: row.signer_name,
+    signature: row.signature_data
+  };
+}
+function normalizeQuote(row){
+  return {
+    id: row.id,
+    folio: row.code,
+    publicToken: row.public_token,
+    ...(row.payload || {}),
+    total: Number(row.total || row.payload?.total || 0),
+    status: row.status,
+    createdAt: row.created_at,
+    viewedAt: row.viewed_at,
+    convertedVoucherId: row.converted_voucher_id
+  };
+}
+
+async function loadSharedData({silent=false}={}){
+  if(refreshInFlight) return;
+  refreshInFlight=true;
+  try{
+    if(!silent) $("#appShell")?.classList.add("data-loading");
+    const [voucherResult, quoteResult] = await Promise.all([
+      db.from("vouchers").select("*").order("created_at",{ascending:false}),
+      db.from("quotes").select("*").order("created_at",{ascending:false})
+    ]);
+    if(voucherResult.error) throw voucherResult.error;
+    if(quoteResult.error) throw quoteResult.error;
+    voucherCache=(voucherResult.data||[]).map(normalizeVoucher);
+    quoteCache=(quoteResult.data||[]).map(normalizeQuote);
+    renderFromCache();
+  }catch(error){
+    if(!silent) toast("No se pudieron cargar los datos de Supabase");
+    console.error("Supabase load error:",error);
+  }finally{
+    $("#appShell")?.classList.remove("data-loading");
+    refreshInFlight=false;
+  }
 }
 
 const viewTitles={
@@ -64,20 +105,27 @@ function switchView(name){
   else if(name==="quotes"){ action.textContent="＋ Nueva cotización"; action.dataset.target="newQuote"; }
   else if(name==="newVoucher"){ action.textContent="Ver vouchers"; action.dataset.target="vouchers"; }
   else { action.textContent="＋ Nuevo voucher"; action.dataset.target="newVoucher"; }
-  if(["dashboard","quotes","vouchers"].includes(name)) render();
+  if(["dashboard","quotes","vouchers"].includes(name)) loadSharedData({silent:true});
   window.scrollTo({top:0,behavior:"smooth"});
 }
 $$(".nav-link").forEach(b=>b.addEventListener("click",()=>switchView(b.dataset.view)));
-$$("[data-go]").forEach(b=>b.addEventListener("click",()=>switchView(b.dataset.go)));
+$$('[data-go]').forEach(b=>b.addEventListener("click",()=>switchView(b.dataset.go)));
 $("#contextAction").addEventListener("click",e=>switchView(e.currentTarget.dataset.target||"newVoucher"));
 
-function voucherLink(id){ const u=new URL("voucher.html",location.href);u.searchParams.set("id",id);return u.href; }
-function quoteLink(id){ const u=new URL("quote.html",location.href);u.searchParams.set("id",id);return u.href; }
-
+function voucherLink(token){
+  const u=new URL("voucher.html",location.href);
+  u.searchParams.set("token",token);
+  return u.href;
+}
+function quoteLink(token){
+  const u=new URL("quote.html",location.href);
+  u.searchParams.set("token",token);
+  return u.href;
+}
 function showModal(type,folio,link){
   $("#modalType").textContent=type==="quote"?"COTIZACIÓN GENERADA":"VOUCHER GENERADO";
   $("#modalFolio").textContent=folio;
-  $("#modalText").textContent=type==="quote"?"Ya puedes abrir la cotización o copiar su enlace.":"Ya puedes abrir el documento completo o copiar su enlace.";
+  $("#modalText").textContent=type==="quote"?"Ya puedes abrir la cotización o copiar su enlace para enviarlo.":"Ya puedes abrir el documento completo o copiar su enlace.";
   $("#modalLink").value=link;
   $("#openDocument").href=link;
   $("#documentModal").classList.add("open");
@@ -90,60 +138,90 @@ $("#copyLink").addEventListener("click",async()=>{
   catch{$("#modalLink").select();document.execCommand("copy");toast("Enlace copiado")}
 });
 
-window.openVoucher=id=>window.open(voucherLink(id),"_blank");
-window.copyVoucherLink=async id=>{const link=voucherLink(id);try{await navigator.clipboard.writeText(link);toast("Enlace copiado")}catch{prompt("Copia este enlace:",link)}};
-window.openQuote=id=>window.open(quoteLink(id),"_blank");
-window.copyQuoteLink=async id=>{const link=quoteLink(id);try{await navigator.clipboard.writeText(link);toast("Enlace copiado")}catch{prompt("Copia este enlace:",link)}};
+window.openVoucher=id=>{
+  const v=voucherCache.find(x=>x.id===id);
+  if(v?.publicToken) window.open(voucherLink(v.publicToken),"_blank","noopener");
+};
+window.copyVoucherLink=async id=>{
+  const v=voucherCache.find(x=>x.id===id); if(!v?.publicToken)return;
+  const link=voucherLink(v.publicToken);
+  try{await navigator.clipboard.writeText(link);toast("Enlace copiado")}
+  catch{prompt("Copia este enlace:",link)}
+};
+window.openQuote=id=>{
+  const q=quoteCache.find(x=>x.id===id);
+  if(q?.publicToken) window.open(quoteLink(q.publicToken),"_blank","noopener");
+};
+window.copyQuoteLink=async id=>{
+  const q=quoteCache.find(x=>x.id===id); if(!q?.publicToken)return;
+  const link=quoteLink(q.publicToken);
+  try{await navigator.clipboard.writeText(link);toast("Enlace copiado")}
+  catch{prompt("Copia este enlace:",link)}
+};
+window.deleteVoucher=async id=>{
+  const v=voucherCache.find(x=>x.id===id); if(!v)return;
+  const warning=v.signedAt?"Este voucher YA ESTÁ FIRMADO. ¿Seguro que quieres eliminarlo definitivamente?":`¿Eliminar definitivamente el voucher ${v.folio}?`;
+  if(!confirm(warning)) return;
+  const {error}=await db.from("vouchers").delete().eq("id",id);
+  if(error){toast("No se pudo eliminar el voucher");console.error(error);return}
+  toast("Voucher eliminado");
+  await loadSharedData({silent:true});
+};
+window.deleteQuote=async id=>{
+  const q=quoteCache.find(x=>x.id===id); if(!q)return;
+  if(!confirm(`¿Eliminar definitivamente la cotización ${q.folio}?`)) return;
+  const {error}=await db.from("quotes").delete().eq("id",id);
+  if(error){toast("No se pudo eliminar la cotización");console.error(error);return}
+  toast("Cotización eliminada");
+  await loadSharedData({silent:true});
+};
 
+function voucherStatus(v){
+  if(v.signedAt || v.status==="signed") return `<span class="status signed">Firmado</span>`;
+  if(v.viewedAt || v.status==="viewed") return `<span class="status viewed">Visto</span>`;
+  return `<span class="status pending">Pendiente</span>`;
+}
 function voucherRow(v,compact=false){
-  const status=v.signedAt?`<span class="status signed">Firmado</span>`:`<span class="status pending">Pendiente</span>`;
-  const actions=`<div class="row-actions"><button class="icon-btn" title="Copiar enlace" onclick="copyVoucherLink('${v.id}')">⧉</button><button class="icon-btn" title="Abrir" onclick="openVoucher('${v.id}')">↗</button></div>`;
-  if(compact) return `<tr><td><strong>${v.folio}</strong></td><td>${escapeHtml(v.passenger)}</td><td>${escapeHtml(v.destination)}</td><td>${status}</td><td>${actions}</td></tr>`;
-  return `<tr><td><strong>${v.folio}</strong></td><td>${escapeHtml(v.passenger)}</td><td>${escapeHtml(v.destination)}</td><td>${formatDate(v.createdAt.slice(0,10))}</td><td>${status}</td><td>${v.signedAt?shortDateTime(v.signedAt):"—"}</td><td>${actions}</td></tr>`;
+  const actions=`<div class="row-actions"><button class="icon-btn" title="Copiar enlace" onclick="copyVoucherLink('${v.id}')">⧉</button><button class="icon-btn" title="Abrir" onclick="openVoucher('${v.id}')">↗</button><button class="icon-btn delete-btn" title="Eliminar" onclick="deleteVoucher('${v.id}')">⌫</button></div>`;
+  if(compact) return `<tr><td><strong>${escapeHtml(v.folio)}</strong></td><td>${escapeHtml(v.passenger)}</td><td>${escapeHtml(v.destination)}</td><td>${voucherStatus(v)}</td><td>${actions}</td></tr>`;
+  return `<tr><td><strong>${escapeHtml(v.folio)}</strong></td><td>${escapeHtml(v.passenger)}</td><td>${escapeHtml(v.destination)}</td><td>${formatDate(v.createdAt?.slice(0,10))}</td><td>${voucherStatus(v)}</td><td>${v.signedAt?shortDateTime(v.signedAt):"—"}</td><td>${actions}</td></tr>`;
 }
 function quoteCard(q,compact=false){
-  const total=money(q.total);
-  const actions=compact?`<button class="icon-btn" onclick="openQuote('${q.id}')">↗</button>`:
-  `<div class="row-actions"><button class="icon-btn" title="Copiar enlace" onclick="copyQuoteLink('${q.id}')">⧉</button><button class="icon-btn" title="Abrir" onclick="openQuote('${q.id}')">↗</button><button class="icon-btn convert-btn" title="Pasar datos a voucher" onclick="convertQuoteToVoucher('${q.id}')">→ Voucher</button></div>`;
-  return `<article class="quote-list-card"><div><span class="quote-folio">${q.folio}</span><h3>${escapeHtml(q.client)}</h3><p>${escapeHtml(q.destination)} · ${formatDate(q.startDate)}</p></div><div class="quote-list-total"><small>Total</small><strong>${total}</strong>${actions}</div></article>`;
+  const actions=`<div class="row-actions"><button class="icon-btn" title="Copiar enlace" onclick="copyQuoteLink('${q.id}')">⧉</button><button class="icon-btn" title="Abrir" onclick="openQuote('${q.id}')">↗</button>${compact?"":`<button class="icon-btn convert-btn" title="Pasar datos a voucher" onclick="convertQuoteToVoucher('${q.id}')">→ Voucher</button>`}<button class="icon-btn delete-btn" title="Eliminar" onclick="deleteQuote('${q.id}')">⌫</button></div>`;
+  return `<article class="quote-list-card"><div><span class="quote-folio">${escapeHtml(q.folio)}</span><h3>${escapeHtml(q.client)}</h3><p>${escapeHtml(q.destination)} · ${formatDate(q.startDate)}</p></div><div class="quote-list-total"><small>Total</small><strong>${money(q.total)}</strong>${actions}</div></article>`;
 }
 
-function render(){
-  const vouchers=getVouchers().sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt));
-  const quotes=getQuotes().sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt));
-  $("#statTotal").textContent=vouchers.length;
-  $("#statPending").textContent=vouchers.filter(x=>!x.signedAt).length;
-  $("#statSigned").textContent=vouchers.filter(x=>x.signedAt).length;
-  $("#statQuotes").textContent=quotes.length;
+function renderFromCache(){
+  $("#statTotal").textContent=voucherCache.length;
+  $("#statPending").textContent=voucherCache.filter(x=>!x.signedAt && x.status!=="signed").length;
+  $("#statSigned").textContent=voucherCache.filter(x=>x.signedAt || x.status==="signed").length;
+  $("#statQuotes").textContent=quoteCache.length;
 
-  const rv=vouchers.slice(0,5);
+  const rv=voucherCache.slice(0,5);
   $("#recentVoucherTable").innerHTML=rv.map(v=>voucherRow(v,true)).join("");
   $("#recentVoucherEmpty").hidden=rv.length>0;
-  const rq=quotes.slice(0,4);
+  const rq=quoteCache.slice(0,4);
   $("#recentQuotes").innerHTML=rq.map(q=>quoteCard(q,true)).join("");
   $("#recentQuoteEmpty").hidden=rq.length>0;
-
   renderVoucherList();
   renderQuoteList();
 }
 function renderVoucherList(){
   const q=$("#searchVouchers").value.trim().toLowerCase();
-  const items=getVouchers().sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt))
-    .filter(v=>[v.folio,v.passenger,v.destination].join(" ").toLowerCase().includes(q));
+  const items=voucherCache.filter(v=>[v.folio,v.passenger,v.destination].join(" ").toLowerCase().includes(q));
   $("#allVoucherTable").innerHTML=items.map(v=>voucherRow(v)).join("");
   $("#allVoucherEmpty").hidden=items.length>0;
 }
 function renderQuoteList(){
   const q=$("#searchQuotes").value.trim().toLowerCase();
-  const items=getQuotes().sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt))
-    .filter(v=>[v.folio,v.client,v.destination,v.title].join(" ").toLowerCase().includes(q));
+  const items=quoteCache.filter(v=>[v.folio,v.client,v.destination,v.title].join(" ").toLowerCase().includes(q));
   $("#allQuotes").innerHTML=items.map(v=>quoteCard(v)).join("");
   $("#allQuotesEmpty").hidden=items.length>0;
 }
 $("#searchVouchers").addEventListener("input",renderVoucherList);
 $("#searchQuotes").addEventListener("input",renderQuoteList);
 
-// Shared same-month calendar behavior
+// Calendarios: regreso limitado al mismo mes de salida.
 function constrainSameMonth(form){
   const start=form.startDate,end=form.endDate;
   if(!start.value){end.min="";end.max="";return}
@@ -169,9 +247,8 @@ wireDates(voucherForm);
 function updateVoucherComputed(){
   const stay=dayDiff(voucherForm.checkIn.value,voucherForm.checkOut.value);
   voucherForm.nightsPreview.value=stay?stay.nights:"";
-  voucherForm.balancePreview.value=money(Math.max(0,Number(voucherForm.totalPrice.value||0)-Number(voucherForm.paymentsMade.value||0)));
 }
-["checkIn","checkOut","totalPrice","paymentsMade"].forEach(name=>["input","change"].forEach(evt=>voucherForm[name].addEventListener(evt,updateVoucherComputed)));
+["checkIn","checkOut"].forEach(name=>["input","change"].forEach(evt=>voucherForm[name].addEventListener(evt,updateVoucherComputed)));
 voucherForm.startDate.addEventListener("change",()=>{
   if(!voucherForm.outboundFlightDate.value)voucherForm.outboundFlightDate.value=voucherForm.startDate.value;
   if(!voucherForm.checkIn.value)voucherForm.checkIn.value=voucherForm.startDate.value;
@@ -182,12 +259,21 @@ voucherForm.endDate.addEventListener("change",()=>{
   updateVoucherComputed();
 });
 
-voucherForm.addEventListener("submit",e=>{
+voucherForm.addEventListener("submit",async e=>{
   e.preventDefault();
-  const data=Object.fromEntries(new FormData(voucherForm).entries());
-  const voucher={id:crypto.randomUUID?crypto.randomUUID():String(Date.now()),folio:makeVoucherCode(),...data,createdAt:new Date().toISOString(),viewedAt:null,signedAt:null,signerName:null,signature:null};
-  const items=getVouchers();items.push(voucher);saveVouchers(items);
-  showModal("voucher",voucher.folio,voucherLink(voucher.id));render();
+  const submit=voucherForm.querySelector('button[type="submit"]');
+  submit.disabled=true; submit.textContent="Guardando…";
+  try{
+    const payload=Object.fromEntries(new FormData(voucherForm).entries());
+    delete payload.durationPreview;
+    delete payload.nightsPreview;
+    const {data:row,error}=await db.from("vouchers").insert({payload,status:"pending"}).select("*").single();
+    if(error) throw error;
+    const voucher=normalizeVoucher(row);
+    showModal("voucher",voucher.folio,voucherLink(voucher.publicToken));
+    await loadSharedData({silent:true});
+  }catch(error){toast(friendlyDbError(error))}
+  finally{submit.disabled=false;submit.textContent="Generar voucher"}
 });
 
 $("#fillVoucherDemo").addEventListener("click",()=>{
@@ -204,20 +290,18 @@ $("#fillVoucherDemo").addEventListener("click",()=>{
   f.hotel.value="Riu Palace Costa Mujeres";f.checkIn.value=iso(start);f.checkOut.value=iso(end);f.room.value="Junior Suite · 2 adultos";f.lodgingPlan.value="Todo incluido";f.lodgingLocator.value="HTL-839201";
   ["serviceFlights","serviceLodging","serviceTransfers","serviceFood","serviceBaggage"].forEach(n=>f[n].checked=true);
   f.foodDetails.value="Plan todo incluido";f.toursDetails.value="Sin tours incluidos";f.included.value="Asistencia Velora durante el viaje";
-  f.totalPrice.value=28600;f.deposit.value=8000;f.paymentsMade.value=12000;f.paymentDeadline.value=iso(new Date(Date.now()+5*86400000));
   f.notes.value="Presentarse en el aeropuerto con anticipación suficiente.";f.advisor.value="Velora Travel";
   updateDuration(f);updateVoucherComputed();toast("Ejemplo completo cargado");
 });
 
-// Quotes
+// Cotizaciones
 const quoteForm=$("#quoteForm");
 wireDates(quoteForm);
 let quoteItemCounter=0;
 function addQuoteItem(data={}){
   const id=++quoteItemCounter;
   const row=document.createElement("div");
-  row.className="quote-item-row";
-  row.dataset.id=id;
+  row.className="quote-item-row";row.dataset.id=id;
   row.innerHTML=`<label class="field"><span>Categoría</span><select name="category"><option>Hospedaje</option><option>Vuelos</option><option>Traslados</option><option>Tours / experiencias</option><option>Seguro</option><option>Otro</option></select></label><label class="field"><span>Concepto</span><input name="concept" placeholder="Ej. Hotel 4 noches"></label><label class="field quote-desc"><span>Detalle</span><input name="description" placeholder="Descripción para el cliente"></label><label class="field"><span>Importe</span><input type="number" min="0" step="0.01" name="amount" value="0"></label><button type="button" class="remove-item" title="Eliminar">×</button>`;
   $("#quoteItems").appendChild(row);
   row.querySelector('[name="category"]').value=data.category||"Hospedaje";
@@ -244,16 +328,26 @@ function updateQuoteTotal(){
 $("#addQuoteItem").addEventListener("click",()=>addQuoteItem());
 addQuoteItem();
 
-quoteForm.addEventListener("submit",e=>{
+quoteForm.addEventListener("submit",async e=>{
   e.preventDefault();
-  const data=Object.fromEntries(new FormData(quoteForm).entries());
-  delete data.category;delete data.concept;delete data.description;delete data.amount;delete data.durationPreview;
   const items=getQuoteItems();
   if(!items.length){toast("Agrega al menos un concepto");return}
-  const quote={id:crypto.randomUUID?crypto.randomUUID():String(Date.now()),folio:makeQuoteCode(),...data,items,total:items.reduce((s,x)=>s+x.amount,0),createdAt:new Date().toISOString(),viewedAt:null};
-  const all=getQuotes();all.push(quote);saveQuotes(all);
-  showModal("quote",quote.folio,quoteLink(quote.id));render();
+  const submit=quoteForm.querySelector('button[type="submit"]');
+  submit.disabled=true; submit.textContent="Guardando…";
+  try{
+    const payload=Object.fromEntries(new FormData(quoteForm).entries());
+    delete payload.category;delete payload.concept;delete payload.description;delete payload.amount;delete payload.durationPreview;
+    payload.items=items;
+    const total=items.reduce((s,x)=>s+x.amount,0);
+    const {data:row,error}=await db.from("quotes").insert({payload,total,status:"sent"}).select("*").single();
+    if(error) throw error;
+    const quote=normalizeQuote(row);
+    showModal("quote",quote.folio,quoteLink(quote.publicToken));
+    await loadSharedData({silent:true});
+  }catch(error){toast(friendlyDbError(error))}
+  finally{submit.disabled=false;submit.textContent="Generar cotización"}
 });
+
 $("#fillQuoteDemo").addEventListener("click",()=>{
   const f=quoteForm;const start=new Date(Date.now()+14*86400000);const last=new Date(start.getFullYear(),start.getMonth()+1,0).getDate();const end=new Date(start.getFullYear(),start.getMonth(),Math.min(start.getDate()+4,last));const iso=d=>d.toISOString().slice(0,10);
   f.client.value="Mariana González Ruiz";f.phone.value="55 1234 5678";f.email.value="mariana@ejemplo.com";f.travelerCount.value=2;f.tripType.value="Vacaciones";f.title.value="Cancún · Todo Incluido";f.destination.value="Cancún, Quintana Roo";f.startDate.value=iso(start);constrainSameMonth(f);f.endDate.value=iso(end);f.validUntil.value=iso(new Date(Date.now()+3*86400000));
@@ -262,11 +356,25 @@ $("#fillQuoteDemo").addEventListener("click",()=>{
 });
 
 window.convertQuoteToVoucher=id=>{
-  const q=getQuotes().find(x=>x.id===id);if(!q)return;
+  const q=quoteCache.find(x=>x.id===id);if(!q)return;
   switchView("newVoucher");
-  voucherForm.passenger.value=q.client||"";voucherForm.passengerCount.value=q.travelerCount||1;voucherForm.phone.value=q.phone||"";voucherForm.email.value=q.email||"";voucherForm.destination.value=q.destination||"";voucherForm.startDate.value=q.startDate||"";constrainSameMonth(voucherForm);voucherForm.endDate.value=q.endDate||"";voucherForm.tripType.value=q.tripType||"";voucherForm.totalPrice.value=q.total||0;voucherForm.deposit.value=q.deposit||0;voucherForm.paymentDeadline.value=q.paymentDeadline||"";voucherForm.notes.value=q.notes||"";voucherForm.advisor.value=q.advisor||"";voucherForm.advisorWhatsapp.value=q.advisorWhatsapp||"55 1900 0905";voucherForm.advisorEmail.value=q.advisorEmail||"hola@veloratravel.com";updateDuration(voucherForm);updateVoucherComputed();toast("Datos de la cotización cargados en el voucher");
+  voucherForm.passenger.value=q.client||"";voucherForm.passengerCount.value=q.travelerCount||1;voucherForm.phone.value=q.phone||"";voucherForm.email.value=q.email||"";voucherForm.destination.value=q.destination||"";voucherForm.startDate.value=q.startDate||"";constrainSameMonth(voucherForm);voucherForm.endDate.value=q.endDate||"";voucherForm.tripType.value=q.tripType||"";voucherForm.notes.value=q.notes||"";voucherForm.advisor.value=q.advisor||"";voucherForm.advisorWhatsapp.value=q.advisorWhatsapp||"55 1900 0905";voucherForm.advisorEmail.value=q.advisorEmail||"hola@veloratravel.com";updateDuration(voucherForm);updateVoucherComputed();toast("Datos de la cotización cargados en el voucher");
 };
 
-window.addEventListener("focus",render);
-window.addEventListener("storage",render);
-render();
+async function initSharedData(){
+  if(typeof db==="undefined") return;
+  const {data}=await db.auth.getSession();
+  if(data.session) await loadSharedData();
+  db.auth.onAuthStateChange((_event,session)=>{
+    if(session) setTimeout(()=>loadSharedData(),0);
+    else {voucherCache=[];quoteCache=[];renderFromCache();}
+  });
+}
+window.addEventListener("focus",()=>{
+  if(document.body.classList.contains("auth-ready")) loadSharedData({silent:true});
+});
+setInterval(()=>{
+  if(document.body.classList.contains("auth-ready") && !document.hidden) loadSharedData({silent:true});
+},5000);
+
+initSharedData();

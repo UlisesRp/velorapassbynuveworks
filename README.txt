@@ -57,3 +57,17 @@ IMPORTANTE
 - Conserva tu supabase-client.js actual.
 - El ZIP trae supabase-client.example.js solo como referencia.
 - Vouchers y cotizaciones todavía usan localStorage. El siguiente paso es migrarlos a las tablas Supabase ya creadas.
+
+
+V1.9
+- Vouchers y cotizaciones migrados de localStorage a Supabase.
+- Todos los usuarios autenticados ven los mismos registros.
+- Actualización automática del panel cada pocos segundos y al volver a la ventana.
+- Links públicos ahora usan public_token y funcionan en otros dispositivos.
+- voucher.html y quote.html cargan Supabase para lectura pública por token.
+- Eliminación de vouchers y cotizaciones desde el panel.
+- Se eliminó Inversión y pagos del voucher: el voucher se entrega una vez liquidado.
+- Corregido encimado del panel lateral en el formulario de vuelos.
+
+IMPORTANTE
+Conserva tu supabase-client.js real en la carpeta del proyecto. Esta entrega no lo incluye.
