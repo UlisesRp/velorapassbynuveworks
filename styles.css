@@ -530,3 +530,84 @@ td strong{font-weight:700}
   .policies-grid{columns:2}
   .quote-public-wrap{padding:0}.quote-document{box-shadow:none;padding:0}
 }
+
+/* ===================== VELORA PASS V1.8 · AUTH ===================== */
+body.auth-pending{overflow:hidden}
+body.auth-pending .shell{visibility:hidden;opacity:0;pointer-events:none}
+body.auth-ready .shell{visibility:visible;opacity:1;transition:opacity .22s ease}
+.auth-screen{
+  position:fixed;inset:0;z-index:9999;display:grid;place-items:center;padding:24px;
+  background:
+    radial-gradient(circle at 20% 15%,rgba(214,182,91,.13),transparent 28%),
+    radial-gradient(circle at 82% 84%,rgba(255,255,255,.06),transparent 32%),
+    #171315;
+  opacity:0;visibility:hidden;transition:.2s ease
+}
+.auth-screen.show{opacity:1;visibility:visible}
+.auth-card{
+  width:min(460px,100%);background:#fff;border-radius:26px;padding:32px;
+  box-shadow:0 30px 90px rgba(0,0,0,.34);border:1px solid rgba(214,182,91,.24)
+}
+.auth-logo{display:block;width:min(250px,78%);margin:0 auto 27px;border-radius:16px}
+.auth-card>.eyebrow{text-align:center;margin-bottom:8px}
+.auth-card h1{margin:0;text-align:center;font:700 31px/1.08 "Playfair Display",serif;color:#292225}
+.auth-copy{max-width:350px;margin:12px auto 24px;text-align:center;color:#746c70;font-size:13px;line-height:1.55}
+.auth-form{display:grid;gap:15px}
+.auth-submit{margin-top:4px;min-height:48px}
+.auth-submit:disabled{opacity:.68;cursor:wait;transform:none}
+.password-field{position:relative}
+.password-field input{padding-right:76px}
+.password-toggle{
+  position:absolute;right:7px;top:50%;transform:translateY(-50%);border:0;background:#f4eeeb;
+  color:#6c5059;border-radius:9px;padding:7px 10px;font-size:11px;font-weight:800
+}
+.auth-error{display:none;margin:0;background:#fff0f1;border:1px solid #f1ced2;color:#8a3440;border-radius:11px;padding:10px 12px;font-size:12px;line-height:1.45}
+.auth-error.show{display:block}
+.auth-status{text-align:center;margin:14px 0 0;color:#8d8588;font-size:11px}
+.auth-foot{display:block;text-align:center;margin-top:20px;color:#a79da0;font-size:10px;letter-spacing:.11em;text-transform:uppercase}
+.sidebar-account{margin-top:auto;margin-bottom:12px;padding:13px 14px;border:1px solid rgba(255,255,255,.1);border-radius:14px;background:rgba(255,255,255,.045)}
+.sidebar-account small{display:block;color:#a99da1;font-size:9px;letter-spacing:.12em;margin-bottom:5px}
+.sidebar-account strong{display:block;color:#fff;font-size:11px;line-height:1.35;overflow-wrap:anywhere;margin-bottom:10px}
+.logout-btn{width:100%;border:1px solid rgba(255,255,255,.12);background:transparent;color:#d9cfd2;border-radius:9px;padding:8px 9px;font-size:10px;font-weight:800}
+.logout-btn:hover{background:rgba(255,255,255,.08);color:#fff}
+.logout-btn:disabled{opacity:.55;cursor:wait}
+@media(max-width:760px){
+  body.auth-pending{overflow:hidden}
+  .auth-card{padding:25px 20px;border-radius:20px}
+  .auth-card h1{font-size:27px}
+  .auth-logo{width:min(220px,75%)}
+  .sidebar-account{margin:12px 0 0}
+}
+
+
+/* ===================== V1.8.1 · FIX BOTÓN LOGIN ===================== */
+/* ÚNICO AJUSTE: asegurar que el botón de acceso siempre sea visible. */
+.auth-screen{
+  overflow-y:auto;
+}
+
+.auth-card{
+  margin:auto;
+}
+
+#loginButton.auth-submit{
+  display:block !important;
+  visibility:visible !important;
+  opacity:1;
+  width:100% !important;
+  min-height:50px;
+  position:relative;
+  z-index:2;
+  background:#7b4658 !important;
+  color:#ffffff !important;
+  border:0 !important;
+}
+
+#loginButton.auth-submit:hover{
+  background:#663747 !important;
+}
+
+#loginButton.auth-submit:disabled{
+  visibility:visible !important;
+  opacity:.68;
+}

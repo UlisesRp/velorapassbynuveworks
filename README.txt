@@ -43,3 +43,17 @@ Conectar Supabase para que:
 - vistos/firmas/estados aparezcan en tiempo real,
 - códigos tengan UNIQUE a nivel de base de datos,
 - la información sobreviva a despliegues y cambios de navegador.
+
+V1.8 · LOGIN CON SUPABASE
+- Pantalla privada de acceso al panel.
+- Inicio de sesión con Supabase Auth (correo + contraseña).
+- Sesión persistente: si el navegador conserva la sesión, no pide login cada vez.
+- Botón Cerrar sesión.
+- Muestra el correo del usuario autenticado.
+- El panel permanece oculto mientras Supabase comprueba la sesión.
+
+IMPORTANTE
+- Esta V1.8 NO incluye supabase-client.js para no sobrescribir las credenciales reales que ya configuraste.
+- Conserva tu supabase-client.js actual.
+- El ZIP trae supabase-client.example.js solo como referencia.
+- Vouchers y cotizaciones todavía usan localStorage. El siguiente paso es migrarlos a las tablas Supabase ya creadas.

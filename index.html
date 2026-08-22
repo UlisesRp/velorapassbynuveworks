@@ -9,8 +9,36 @@
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
 </head>
-<body class="app-body">
-  <div class="shell">
+<body class="app-body auth-pending">
+  <section class="auth-screen" id="authScreen" aria-live="polite">
+    <div class="auth-card">
+      <img src="assets/velora-pass-logo.png" alt="Velora Pass by Nuve Works" class="auth-logo">
+      <p class="eyebrow">ACCESO PRIVADO</p>
+      <h1>Bienvenido a Velora Pass</h1>
+      <p class="auth-copy">Inicia sesión con una cuenta autorizada para administrar cotizaciones y vouchers de Velora Travel.</p>
+
+      <form id="loginForm" class="auth-form">
+        <label class="field">
+          <span>Correo electrónico</span>
+          <input id="loginEmail" type="email" autocomplete="username" required placeholder="correo@ejemplo.com">
+        </label>
+        <label class="field">
+          <span>Contraseña</span>
+          <div class="password-field">
+            <input id="loginPassword" type="password" autocomplete="current-password" required placeholder="Tu contraseña">
+            <button type="button" class="password-toggle" id="togglePassword" aria-label="Mostrar contraseña">Ver</button>
+          </div>
+        </label>
+        <button class="primary-btn full-btn auth-submit" id="loginButton" type="submit">Entrar a Velora Pass</button>
+        <p class="auth-error" id="loginError" role="alert"></p>
+      </form>
+
+      <div class="auth-status" id="authStatus">Comprobando sesión…</div>
+      <small class="auth-foot">Velora Pass · by Nuve Works</small>
+    </div>
+  </section>
+
+  <div class="shell" id="appShell">
     <aside class="sidebar">
       <div class="brand app-brand">
         <img src="assets/velora-pass-logo.png" alt="Velora Pass by Nuve Works" class="app-logo">
@@ -23,6 +51,12 @@
         <button class="nav-link" data-view="newVoucher"><span>＋</span> Nuevo voucher</button>
         <button class="nav-link" data-view="vouchers"><span>▣</span> Vouchers</button>
       </nav>
+
+      <div class="sidebar-account" id="sidebarAccount">
+        <small>SESIÓN ACTIVA</small>
+        <strong id="authUserEmail">—</strong>
+        <button class="logout-btn" id="logoutButton" type="button">Cerrar sesión</button>
+      </div>
 
       <div class="sidebar-note">
         <span class="dot"></span>
@@ -392,6 +426,9 @@
     </div>
   </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-client.js"></script>
+  <script src="auth.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
