@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Velora Travel · Confirmación de viaje</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="voucher-body document-voucher">
+  <main class="confirmation-wrap">
+    <section class="confirmation-sheet">
+
+      <header class="confirmation-header">
+        <div class="confirmation-logo-box">
+          <img src="assets/velora-logo.png" alt="Velora Travel" class="confirmation-logo">
+        </div>
+        <div class="confirmation-meta">
+          <span>VIAJE CONFIRMADO</span>
+          <small>No. DE CONFIRMACIÓN</small>
+          <strong id="vFolio">—</strong>
+          <small>FECHA DE EMISIÓN</small>
+          <b id="vIssuedAt">—</b>
+        </div>
+      </header>
+
+      <section class="confirmation-intro">
+        <h1>CONFIRMACIÓN DE VIAJE</h1>
+        <p class="doc-subtitle">DOCUMENTO OFICIAL DE SERVICIOS TURÍSTICOS</p>
+        <h2>Hola <span id="vPassengerGreeting">—</span>:</h2>
+        <p>¡Gracias por elegir Velora Travel! Nos emociona acompañarte y crear experiencias inolvidables.</p>
+      </section>
+
+      <section class="doc-block">
+        <div class="dual-section-head">
+          <div>1&nbsp; DATOS DEL VIAJERO</div>
+          <div>2&nbsp; DETALLES DEL VIAJE</div>
+        </div>
+        <div class="doc-two-col">
+          <div class="doc-data">
+            <p><b>Nombre completo:</b> <span id="vPassenger">—</span></p>
+            <p><b>Número de pasajeros:</b> <span id="vPassengerCount">—</span></p>
+            <p><b>Teléfono:</b> <span id="vPhone">—</span></p>
+            <p><b>Correo electrónico:</b> <span id="vEmail">—</span></p>
+          </div>
+          <div class="doc-data">
+            <p><b>Destino:</b> <span id="vDestination">—</span></p>
+            <p><b>Fecha de salida:</b> <span id="vStartDate">—</span></p>
+            <p><b>Fecha de regreso:</b> <span id="vEndDate">—</span></p>
+            <p><b>Duración:</b> <span id="vDuration">—</span></p>
+            <p><b>Tipo de viaje:</b> <span id="vTripType">—</span></p>
+            <p><b>Localizador / Reserva:</b> <span id="vGeneralLocator">—</span></p>
+          </div>
+        </div>
+      </section>
+
+      <section class="doc-block">
+        <div class="dual-section-head">
+          <div>3&nbsp; TRANSPORTACIÓN</div>
+          <div>4&nbsp; HOSPEDAJE</div>
+        </div>
+        <div class="doc-two-col">
+          <div class="doc-data">
+            <p><b>Aerolínea / Operador:</b> <span id="vAirline">—</span></p>
+            <p><b>Vuelo de salida:</b> <span id="vOutboundFlight">—</span></p>
+            <p><b>Fecha y horario:</b> <span id="vOutboundFlightTime">—</span></p>
+            <p><b>Localizador vuelo ida:</b> <span id="vOutboundFlightLocator">—</span></p>
+            <p><b>Vuelo de regreso:</b> <span id="vReturnFlight">—</span></p>
+            <p><b>Fecha y horario:</b> <span id="vReturnFlightTime">—</span></p>
+            <p><b>Localizador vuelo regreso:</b> <span id="vReturnFlightLocator">—</span></p>
+            <p><b>Traslado de llegada:</b> <span id="vArrivalTransferLocator">—</span></p>
+            <p><b>Traslado de salida:</b> <span id="vDepartureTransferLocator">—</span></p>
+            <p><b>Equipaje incluido:</b> <span id="vBaggage">—</span></p>
+          </div>
+          <div class="doc-data">
+            <p><b>Hotel:</b> <span id="vHotel">—</span></p>
+            <p><b>Check-in:</b> <span id="vCheckIn">—</span></p>
+            <p><b>Check-out:</b> <span id="vCheckOut">—</span></p>
+            <p><b>Tipo de habitación:</b> <span id="vRoom">—</span></p>
+            <p><b>Plan contratado:</b> <span id="vLodgingPlan">—</span></p>
+            <p><b>Noches:</b> <span id="vNights">—</span></p>
+            <p><b>Localizador hospedaje:</b> <span id="vLodgingLocator">—</span></p>
+          </div>
+        </div>
+      </section>
+
+      <section class="doc-block">
+        <div class="single-section-head">5&nbsp; SERVICIOS INCLUIDOS</div>
+        <div class="services-strip">
+          <div id="serviceFlightsCard">✦<strong>TRANSPORTACIÓN<br><small>(Vuelos)</small></strong></div>
+          <div id="serviceLodgingCard">✦<strong>HOSPEDAJE</strong></div>
+          <div id="serviceTransfersCard">✦<strong>TRASLADOS</strong></div>
+          <div id="serviceFoodCard">✦<strong>ALIMENTOS Y<br>BEBIDAS</strong></div>
+          <div id="serviceToursCard">✦<strong>TOURS /<br>EXPERIENCIAS</strong></div>
+          <div id="serviceBaggageCard">✦<strong>EQUIPAJE<br>INCLUIDO</strong></div>
+        </div>
+        <div class="service-detail-list">
+          <p id="vFoodDetailsRow"><b>Alimentos y bebidas:</b> <span id="vFoodDetails">—</span></p>
+          <p id="vToursDetailsRow"><b>Tours / experiencias:</b> <span id="vToursDetails">—</span></p>
+          <p id="vOtherIncludedRow"><b>Otros servicios:</b> <span id="vIncluded">—</span></p>
+        </div>
+      </section>
+
+      <section class="doc-block doc-bottom-grid">
+        <div>
+          <div class="single-section-head">6&nbsp; INVERSIÓN Y PAGOS</div>
+          <div class="doc-data payment-data">
+            <p><b>Precio total del viaje:</b> <span id="vTotalPrice">—</span></p>
+            <p><b>Anticipo:</b> <span id="vDeposit">—</span></p>
+            <p><b>Pagos realizados:</b> <span id="vPaymentsMade">—</span></p>
+            <p><b>Saldo pendiente:</b> <span id="vBalance">—</span></p>
+            <p><b>Fecha límite de liquidación:</b> <span id="vPaymentDeadline">—</span></p>
+          </div>
+        </div>
+        <div>
+          <div class="single-section-head">7&nbsp; INFORMACIÓN IMPORTANTE</div>
+          <div class="important-list">
+            <p>● Es responsabilidad del pasajero contar con la documentación necesaria para su viaje.</p>
+            <p>● Horarios de vuelos y servicios sujetos a cambios sin previo aviso.</p>
+            <p>● Cambios o cancelaciones están sujetos a las políticas de los proveedores.</p>
+            <p>● Impuestos, propinas y gastos personales no incluidos salvo indicación expresa.</p>
+            <p>● Recomendamos llegar al aeropuerto con anticipación suficiente.</p>
+            <p>● Conserva este documento durante todo tu viaje.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="doc-block" id="notesBlock">
+        <div class="single-section-head">OBSERVACIONES DEL VIAJE</div>
+        <div class="doc-data notes-box" id="vNotes">—</div>
+      </section>
+
+      <section class="doc-contact">
+        <div class="single-section-head">8&nbsp; CONTACTO VELORA TRAVEL</div>
+        <p><b>Asesor asignado:</b> <span id="vAdvisor">—</span> &nbsp;|&nbsp; <b>WhatsApp:</b> <span id="vAdvisorWhatsapp">—</span> &nbsp;|&nbsp; <b>Correo:</b> <span id="vAdvisorEmail">—</span> &nbsp;|&nbsp; <b>Instagram:</b> <span id="vAdvisorInstagram">—</span></p>
+      </section>
+
+      <section class="signature-section document-signature" id="signatureSection">
+        <p class="eyebrow">CONFIRMACIÓN DEL PASAJERO</p>
+        <h2>Firma de conformidad</h2>
+        <p class="acceptance-text" id="vAcceptance"></p>
+        <label class="check-line">
+          <input type="checkbox" id="acceptCheck">
+          <span>He revisado la información de mi viaje y estoy de acuerdo.</span>
+        </label>
+        <label class="field">
+          <span>Nombre de quien firma</span>
+          <input id="signerName" placeholder="Escribe tu nombre completo">
+        </label>
+        <div class="signature-pad-wrap">
+          <div class="signature-label">
+            <span>Firma aquí con el dedo o mouse</span>
+            <button type="button" class="text-btn" id="clearSignature">Limpiar</button>
+          </div>
+          <canvas id="signaturePad"></canvas>
+        </div>
+        <button class="primary-btn full-btn" id="signButton">Firmar y confirmar cupón</button>
+        <p class="privacy-copy">Al confirmar se guardará la firma junto con la fecha y hora de aceptación.</p>
+      </section>
+
+      <section class="signed-proof" id="signedProof">
+        <p class="eyebrow">CONSTANCIA DE ACEPTACIÓN</p>
+        <div class="proof-grid">
+          <div><span>Firmado por</span><strong id="proofName"></strong></div>
+          <div><span>Fecha y hora</span><strong id="proofDate"></strong></div>
+        </div>
+        <div class="saved-signature"><img id="proofSignature" alt="Firma del pasajero"></div>
+        <button class="ghost-btn full-btn print-hide" onclick="window.print()">Imprimir / guardar PDF</button>
+      </section>
+
+      <footer class="confirmation-footer">
+        <strong>Gracias por confiar en Velora Travel.</strong>
+        <span>Estamos aquí para hacer de tu viaje una experiencia inolvidable.</span>
+        <b>EL MUNDO MERECE CONOCERTE</b>
+      </footer>
+    </section>
+  </main>
+
+  <div class="toast" id="toast"></div>
+  <script src="voucher.js"></script>
+</body>
+</html>
