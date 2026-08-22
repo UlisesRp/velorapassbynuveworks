@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Velora Pass · Panel</title>
+  <title>Velora Pass · by Nuve Works</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
@@ -17,21 +17,17 @@
       </div>
 
       <nav class="side-nav">
-        <button class="nav-link active" data-view="dashboard">
-          <span>⌂</span> Inicio
-        </button>
-        <button class="nav-link" data-view="new">
-          <span>＋</span> Nuevo cupón
-        </button>
-        <button class="nav-link" data-view="vouchers">
-          <span>▣</span> Cupones
-        </button>
+        <button class="nav-link active" data-view="dashboard"><span>⌂</span> Inicio</button>
+        <button class="nav-link" data-view="newQuote"><span>＋</span> Nueva cotización</button>
+        <button class="nav-link" data-view="quotes"><span>◇</span> Cotizaciones</button>
+        <button class="nav-link" data-view="newVoucher"><span>＋</span> Nuevo voucher</button>
+        <button class="nav-link" data-view="vouchers"><span>▣</span> Vouchers</button>
       </nav>
 
       <div class="sidebar-note">
         <span class="dot"></span>
         Demo local
-        <small>Los datos se guardan en este navegador.</small>
+        <small>Los datos aún se guardan en este navegador. Supabase será el siguiente paso.</small>
         <em>Velora Pass · by Nuve Works</em>
       </div>
     </aside>
@@ -40,17 +36,17 @@
       <header class="topbar">
         <div>
           <p class="eyebrow app-kicker">VELORA PASS <span>· by NUVE WORKS</span></p>
-          <h1 id="pageTitle">Panel de cupones</h1>
+          <h1 id="pageTitle">Panel general</h1>
         </div>
-        <button class="primary-btn" id="newVoucherTop">＋ Nuevo cupón</button>
+        <button class="primary-btn" id="contextAction">＋ Nuevo voucher</button>
       </header>
 
       <section class="view active" id="dashboardView">
         <div class="stats-grid">
           <article class="stat-card">
-            <span>Total</span>
+            <span>Vouchers</span>
             <strong id="statTotal">0</strong>
-            <small>Cupones generados</small>
+            <small>Confirmaciones generadas</small>
           </article>
           <article class="stat-card">
             <span>Pendientes</span>
@@ -60,406 +56,323 @@
           <article class="stat-card success">
             <span>Firmados</span>
             <strong id="statSigned">0</strong>
-            <small>Confirmados por pasajero</small>
+            <small>Aceptados por pasajero</small>
           </article>
-          <article class="stat-card">
-            <span>Próximos</span>
-            <strong id="statUpcoming">0</strong>
-            <small>Viajan en los próximos 30 días</small>
+          <article class="stat-card quote-stat">
+            <span>Cotizaciones</span>
+            <strong id="statQuotes">0</strong>
+            <small>Documentos generados</small>
           </article>
         </div>
 
-        <div class="panel">
-          <div class="panel-head">
-            <div>
-              <p class="eyebrow">ACTIVIDAD</p>
-              <h2>Cupones recientes</h2>
+        <div class="dashboard-grid">
+          <div class="panel">
+            <div class="panel-head">
+              <div>
+                <p class="eyebrow">VOUCHERS</p>
+                <h2>Recientes</h2>
+              </div>
+              <button class="text-btn" data-go="vouchers">Ver todos →</button>
             </div>
-            <button class="text-btn" data-go="vouchers">Ver todos →</button>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Folio</th><th>Pasajero</th><th>Destino</th><th>Estado</th><th></th></tr></thead>
+                <tbody id="recentVoucherTable"></tbody>
+              </table>
+            </div>
+            <div class="empty-state" id="recentVoucherEmpty">
+              <div class="empty-icon">▣</div>
+              <h3>Aún no hay vouchers</h3>
+              <p>Crea el primero para probar el documento completo.</p>
+              <button class="primary-btn" data-go="newVoucher">Crear voucher</button>
+            </div>
           </div>
-          <div class="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>Folio</th>
-                  <th>Pasajero</th>
-                  <th>Destino</th>
-                  <th>Viaje</th>
-                  <th>Estado</th>
-                  <th></th>
-                </tr>
-              </thead>
-              <tbody id="recentTable"></tbody>
-            </table>
-          </div>
-          <div class="empty-state" id="recentEmpty">
-            <div class="empty-icon">✦</div>
-            <h3>Aún no hay cupones</h3>
-            <p>Crea el primero para probar el flujo completo.</p>
-            <button class="primary-btn" data-go="new">Crear cupón</button>
+
+          <div class="panel">
+            <div class="panel-head">
+              <div>
+                <p class="eyebrow">COTIZACIONES</p>
+                <h2>Recientes</h2>
+              </div>
+              <button class="text-btn" data-go="quotes">Ver todas →</button>
+            </div>
+            <div class="quote-cards" id="recentQuotes"></div>
+            <div class="empty-state" id="recentQuoteEmpty">
+              <div class="empty-icon">◇</div>
+              <h3>Aún no hay cotizaciones</h3>
+              <p>Genera una para enviarla al cliente.</p>
+              <button class="primary-btn" data-go="newQuote">Nueva cotización</button>
+            </div>
           </div>
         </div>
       </section>
 
-      <section class="view" id="newView">
+      <!-- NEW QUOTE -->
+      <section class="view" id="newQuoteView">
+        <div class="form-layout">
+          <form class="panel voucher-form" id="quoteForm">
+            <div class="form-section">
+              <p class="eyebrow">CLIENTE</p>
+              <div class="fields-grid">
+                <label class="field span-2"><span>Nombre completo *</span><input required name="client" placeholder="Nombre del cliente"></label>
+                <label class="field"><span>Teléfono *</span><input required name="phone" placeholder="55 0000 0000"></label>
+                <label class="field"><span>Correo</span><input type="email" name="email" placeholder="correo@ejemplo.com"></label>
+                <label class="field"><span>Número de viajeros *</span><input required type="number" min="1" name="travelerCount" value="2"></label>
+                <label class="field"><span>Tipo de viaje</span><input name="tripType" placeholder="Vacaciones, luna de miel..."></label>
+              </div>
+            </div>
+
+            <div class="form-section">
+              <p class="eyebrow">VIAJE</p>
+              <div class="fields-grid">
+                <label class="field span-2"><span>Título de la cotización *</span><input required name="title" placeholder="Ej. Cancún Todo Incluido"></label>
+                <label class="field span-2"><span>Destino *</span><input required name="destination" placeholder="Cancún, Quintana Roo"></label>
+                <label class="field"><span>Fecha de salida *</span><input required type="date" name="startDate"></label>
+                <label class="field"><span>Fecha de regreso *</span><input required type="date" name="endDate"><small class="field-hint">Se limita al mismo mes de la salida.</small></label>
+                <label class="field"><span>Duración</span><input readonly name="durationPreview" placeholder="Automática"></label>
+                <label class="field"><span>Vigencia de la cotización *</span><input required type="date" name="validUntil"></label>
+              </div>
+            </div>
+
+            <div class="form-section">
+              <div class="section-title-row">
+                <div>
+                  <p class="eyebrow">SERVICIOS Y PRECIOS</p>
+                  <p class="section-copy">Agrega cada concepto que quieras mostrar al cliente.</p>
+                </div>
+                <button type="button" class="ghost-btn compact-btn" id="addQuoteItem">＋ Agregar concepto</button>
+              </div>
+              <div id="quoteItems" class="quote-items"></div>
+              <div class="quote-total-preview">
+                <span>Total de la cotización</span>
+                <strong id="quoteTotalPreview">$0.00</strong>
+              </div>
+            </div>
+
+            <div class="form-section">
+              <p class="eyebrow">CONDICIONES DE LA COTIZACIÓN</p>
+              <div class="fields-grid">
+                <label class="field"><span>Anticipo para reservar</span><input type="number" min="0" step="0.01" name="deposit" placeholder="0.00"></label>
+                <label class="field"><span>Fecha límite de liquidación</span><input type="date" name="paymentDeadline"></label>
+                <label class="field span-2"><span>Incluye</span><textarea name="includes" rows="4" placeholder="Servicios incluidos, beneficios, equipaje, alimentos..."></textarea></label>
+                <label class="field span-2"><span>No incluye</span><textarea name="excludes" rows="3" placeholder="Gastos personales, propinas, servicios no mencionados..."></textarea></label>
+                <label class="field span-2"><span>Notas / observaciones</span><textarea name="notes" rows="4" placeholder="Información adicional para el cliente"></textarea></label>
+              </div>
+            </div>
+
+            <div class="form-section">
+              <p class="eyebrow">ASESOR</p>
+              <div class="fields-grid">
+                <label class="field span-2"><span>Asesor asignado *</span><input required name="advisor" placeholder="Nombre del asesor"></label>
+                <label class="field"><span>WhatsApp</span><input name="advisorWhatsapp" value="55 1900 0905"></label>
+                <label class="field"><span>Correo</span><input type="email" name="advisorEmail" value="hola@veloratravel.com"></label>
+              </div>
+            </div>
+
+            <div class="form-actions">
+              <button type="button" class="ghost-btn" id="fillQuoteDemo">Llenar ejemplo</button>
+              <button type="submit" class="primary-btn">Generar cotización</button>
+            </div>
+          </form>
+
+          <aside class="panel help-card">
+            <p class="eyebrow">COTIZACIONES</p>
+            <h3>Documento para enviar</h3>
+            <p class="help-copy">Se genera un enlace independiente con formato Velora, listo para abrir en celular, imprimir o guardar como PDF.</p>
+            <div class="mini-note">Mientras sigamos en localStorage, el enlace solo funciona en el mismo navegador. Con Supabase quedará compartible de verdad.</div>
+          </aside>
+        </div>
+      </section>
+
+      <!-- QUOTES LIST -->
+      <section class="view" id="quotesView">
+        <div class="panel">
+          <div class="panel-head vouchers-head">
+            <div><p class="eyebrow">HISTORIAL</p><h2>Cotizaciones</h2></div>
+            <div class="search"><span>⌕</span><input id="searchQuotes" placeholder="Buscar cliente, destino o folio"></div>
+          </div>
+          <div class="quote-list" id="allQuotes"></div>
+          <div class="empty-state" id="allQuotesEmpty">
+            <div class="empty-icon">◇</div><h3>No hay cotizaciones</h3><p>Genera la primera desde el menú.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- NEW VOUCHER -->
+      <section class="view" id="newVoucherView">
         <div class="form-layout">
           <form class="panel voucher-form" id="voucherForm">
             <div class="form-section">
               <p class="eyebrow">1 · DATOS DEL VIAJERO</p>
               <div class="fields-grid">
-                <label class="field span-2">
-                  <span>Nombre completo *</span>
-                  <input required name="passenger" placeholder="Ej. Fernanda López García">
-                </label>
-                <label class="field">
-                  <span>Número de pasajeros *</span>
-                  <input required type="number" min="1" name="passengerCount" value="1">
-                </label>
-                <label class="field">
-                  <span>Teléfono *</span>
-                  <input required name="phone" placeholder="55 0000 0000">
-                </label>
-                <label class="field span-2">
-                  <span>Correo electrónico *</span>
-                  <input required type="email" name="email" placeholder="correo@ejemplo.com">
-                </label>
+                <label class="field span-2"><span>Nombre completo *</span><input required name="passenger" placeholder="Nombre del pasajero"></label>
+                <label class="field"><span>Número de pasajeros *</span><input required type="number" min="1" name="passengerCount" value="1"></label>
+                <label class="field"><span>Teléfono *</span><input required name="phone" placeholder="55 0000 0000"></label>
+                <label class="field span-2"><span>Correo electrónico *</span><input required type="email" name="email" placeholder="correo@ejemplo.com"></label>
               </div>
             </div>
 
             <div class="form-section">
               <p class="eyebrow">2 · DETALLES DEL VIAJE</p>
               <div class="fields-grid">
-                <label class="field span-2">
-                  <span>Destino *</span>
-                  <input required name="destination" placeholder="Ej. Cancún, Quintana Roo">
-                </label>
-
-                <label class="field">
-                  <span>Fecha de salida *</span>
-                  <input required type="date" name="startDate">
-                </label>
-
-                <label class="field">
-                  <span>Fecha de regreso *</span>
-                  <input required type="date" name="endDate">
-                  <small class="field-hint">La fecha de regreso queda limitada al mismo mes de la salida.</small>
-                </label>
-
-                <label class="field">
-                  <span>Duración</span>
-                  <input name="durationPreview" readonly placeholder="Se calcula automáticamente">
-                  <small class="field-hint">Se calcula con las fechas del viaje.</small>
-                </label>
-
-                <label class="field">
-                  <span>Tipo de viaje *</span>
-                  <input required name="tripType" placeholder="Ej. Vacaciones, Luna de miel, Familiar">
-                </label>
-
-                <label class="field span-2">
-                  <span>Localizador / reserva general</span>
-                  <input name="generalLocator" placeholder="Referencia general de la reserva">
-                  <small class="field-hint">Este dato corresponde al “Localizador / Reserva” del voucher. Los localizadores específicos se capturan abajo.</small>
-                </label>
+                <label class="field span-2"><span>Destino *</span><input required name="destination" placeholder="Cancún, Quintana Roo"></label>
+                <label class="field"><span>Fecha de salida *</span><input required type="date" name="startDate"></label>
+                <label class="field"><span>Fecha de regreso *</span><input required type="date" name="endDate"><small class="field-hint">La fecha de regreso queda limitada al mismo mes de la salida.</small></label>
+                <label class="field"><span>Duración</span><input name="durationPreview" readonly placeholder="Automática"></label>
+                <label class="field"><span>Tipo de viaje *</span><input required name="tripType" placeholder="Vacaciones, luna de miel..."></label>
+                <label class="field span-2"><span>Localizador / reserva general</span><input name="generalLocator" placeholder="Referencia general"></label>
               </div>
             </div>
 
             <div class="form-section">
-              <p class="eyebrow">3 · TRANSPORTACIÓN</p>
-              <div class="fields-grid">
-                <label class="field span-2">
-                  <span>Aerolínea / operador</span>
-                  <input name="airline" placeholder="Ej. Aeroméxico">
-                </label>
+              <p class="eyebrow">3 · BOLETAJE Y TRANSPORTACIÓN</p>
+              <p class="section-copy">Estos datos alimentan tanto la confirmación como el boleto visual que verá el pasajero.</p>
+              <div class="flight-capture">
+                <div class="flight-capture-card">
+                  <h3>✈ Vuelo de ida</h3>
+                  <div class="fields-grid">
+                    <label class="field"><span>Aerolínea</span><input name="outboundAirline" placeholder="Volaris"></label>
+                    <label class="field"><span>Vuelo</span><input name="outboundFlight" placeholder="Y4 1234"></label>
+                    <label class="field"><span>Localizador</span><input name="outboundFlightLocator" placeholder="ZCY123"></label>
+                    <label class="field"><span>Fecha</span><input type="date" name="outboundFlightDate"></label>
+                    <label class="field"><span>Origen · código</span><input name="outboundOriginCode" placeholder="AIFA"></label>
+                    <label class="field"><span>Origen · ciudad</span><input name="outboundOriginCity" placeholder="Ciudad de México"></label>
+                    <label class="field"><span>Destino · código</span><input name="outboundDestinationCode" placeholder="CUN"></label>
+                    <label class="field"><span>Destino · ciudad</span><input name="outboundDestinationCity" placeholder="Cancún"></label>
+                    <label class="field"><span>Hora de salida</span><input type="time" name="outboundDepartureTime"></label>
+                    <label class="field"><span>Terminal salida</span><input name="outboundDepartureTerminal" placeholder="1"></label>
+                    <label class="field"><span>Hora de llegada</span><input type="time" name="outboundArrivalTime"></label>
+                    <label class="field"><span>Terminal llegada</span><input name="outboundArrivalTerminal" placeholder="3"></label>
+                  </div>
+                </div>
 
-                <label class="field">
-                  <span>Vuelo de salida</span>
-                  <input name="outboundFlight" placeholder="Ej. AM 512">
-                </label>
+                <div class="flight-capture-card">
+                  <h3>✈ Vuelo de regreso</h3>
+                  <div class="fields-grid">
+                    <label class="field"><span>Aerolínea</span><input name="returnAirline" placeholder="Volaris"></label>
+                    <label class="field"><span>Vuelo</span><input name="returnFlight" placeholder="Y4 5678"></label>
+                    <label class="field"><span>Localizador</span><input name="returnFlightLocator" placeholder="ZCY123"></label>
+                    <label class="field"><span>Fecha</span><input type="date" name="returnFlightDate"></label>
+                    <label class="field"><span>Origen · código</span><input name="returnOriginCode" placeholder="CUN"></label>
+                    <label class="field"><span>Origen · ciudad</span><input name="returnOriginCity" placeholder="Cancún"></label>
+                    <label class="field"><span>Destino · código</span><input name="returnDestinationCode" placeholder="AIFA"></label>
+                    <label class="field"><span>Destino · ciudad</span><input name="returnDestinationCity" placeholder="Ciudad de México"></label>
+                    <label class="field"><span>Hora de salida</span><input type="time" name="returnDepartureTime"></label>
+                    <label class="field"><span>Terminal salida</span><input name="returnDepartureTerminal" placeholder="3"></label>
+                    <label class="field"><span>Hora de llegada</span><input type="time" name="returnArrivalTime"></label>
+                    <label class="field"><span>Terminal llegada</span><input name="returnArrivalTerminal" placeholder="1"></label>
+                  </div>
+                </div>
+              </div>
 
-                <label class="field">
-                  <span>Localizador vuelo de ida</span>
-                  <input name="outboundFlightLocator" placeholder="Ej. ABC123">
-                </label>
-
-                <label class="field">
-                  <span>Fecha vuelo de ida</span>
-                  <input type="date" name="outboundFlightDate">
-                </label>
-
-                <label class="field">
-                  <span>Horario vuelo de ida</span>
-                  <input type="time" name="outboundFlightTime">
-                </label>
-
-                <label class="field">
-                  <span>Vuelo de regreso</span>
-                  <input name="returnFlight" placeholder="Ej. AM 513">
-                </label>
-
-                <label class="field">
-                  <span>Localizador vuelo de regreso</span>
-                  <input name="returnFlightLocator" placeholder="Ej. XYZ789">
-                </label>
-
-                <label class="field">
-                  <span>Fecha vuelo de regreso</span>
-                  <input type="date" name="returnFlightDate">
-                </label>
-
-                <label class="field">
-                  <span>Horario vuelo de regreso</span>
-                  <input type="time" name="returnFlightTime">
-                </label>
-
-                <label class="field">
-                  <span>Localizador traslado de llegada</span>
-                  <input name="arrivalTransferLocator" placeholder="Ej. TR-IN-45821">
-                </label>
-
-                <label class="field">
-                  <span>Localizador traslado de salida</span>
-                  <input name="departureTransferLocator" placeholder="Ej. TR-OUT-45822">
-                </label>
-
-                <label class="field span-2">
-                  <span>Equipaje incluido</span>
-                  <textarea name="baggage" rows="2" placeholder="Ej. 1 maleta documentada de 25 kg + equipaje de mano"></textarea>
-                </label>
+              <div class="fields-grid transport-extra">
+                <label class="field"><span>Operador / proveedor de transportación</span><input name="transportOperator" placeholder="Operador terrestre / aerolínea"></label>
+                <label class="field"><span>Localizador traslado de llegada</span><input name="arrivalTransferLocator" placeholder="TR-IN-45821"></label>
+                <label class="field"><span>Localizador traslado de salida</span><input name="departureTransferLocator" placeholder="TR-OUT-45822"></label>
+                <label class="field"><span>Equipaje de mano</span><input name="carryOnBaggage" placeholder="1 pieza · 10 kg"></label>
+                <label class="field"><span>Equipaje documentado</span><input name="checkedBaggage" placeholder="1 pieza · 23 kg"></label>
+                <label class="field span-2"><span>Detalles adicionales de equipaje</span><textarea name="baggage" rows="2" placeholder="Restricciones o equipaje adicional"></textarea></label>
               </div>
             </div>
 
             <div class="form-section">
               <p class="eyebrow">4 · HOSPEDAJE</p>
               <div class="fields-grid">
-                <label class="field span-2">
-                  <span>Hotel</span>
-                  <input name="hotel" placeholder="Ej. Riu Palace Costa Mujeres">
-                </label>
-
-                <label class="field">
-                  <span>Check-in</span>
-                  <input type="date" name="checkIn">
-                </label>
-
-                <label class="field">
-                  <span>Check-out</span>
-                  <input type="date" name="checkOut">
-                </label>
-
-                <label class="field">
-                  <span>Tipo de habitación</span>
-                  <input name="room" placeholder="Ej. Junior Suite">
-                </label>
-
-                <label class="field">
-                  <span>Plan contratado</span>
-                  <input name="lodgingPlan" placeholder="Ej. Todo incluido">
-                </label>
-
-                <label class="field">
-                  <span>Noches</span>
-                  <input name="nightsPreview" readonly placeholder="Se calcula automáticamente">
-                </label>
-
-                <label class="field">
-                  <span>Localizador de hospedaje</span>
-                  <input name="lodgingLocator" placeholder="Ej. HTL-98271">
-                </label>
+                <label class="field span-2"><span>Hotel</span><input name="hotel" placeholder="Nombre del hotel"></label>
+                <label class="field"><span>Check-in</span><input type="date" name="checkIn"></label>
+                <label class="field"><span>Check-out</span><input type="date" name="checkOut"></label>
+                <label class="field"><span>Tipo de habitación</span><input name="room" placeholder="Junior Suite"></label>
+                <label class="field"><span>Plan contratado</span><input name="lodgingPlan" placeholder="Todo incluido"></label>
+                <label class="field"><span>Noches</span><input name="nightsPreview" readonly placeholder="Automáticas"></label>
+                <label class="field"><span>Localizador de hospedaje</span><input name="lodgingLocator" placeholder="HTL-98271"></label>
               </div>
             </div>
 
             <div class="form-section">
               <p class="eyebrow">5 · SERVICIOS INCLUIDOS</p>
-              <p class="section-copy">Marca lo que sí está incluido y agrega detalles cuando sea necesario.</p>
-
               <div class="service-capture-grid">
-                <label class="service-option">
-                  <input type="checkbox" name="serviceFlights" value="1">
-                  <span><b>Transportación</b><small>Vuelos</small></span>
-                </label>
-
-                <label class="service-option">
-                  <input type="checkbox" name="serviceLodging" value="1">
-                  <span><b>Hospedaje</b><small>Hotel / alojamiento</small></span>
-                </label>
-
-                <label class="service-option">
-                  <input type="checkbox" name="serviceTransfers" value="1">
-                  <span><b>Traslados</b><small>Llegada / salida</small></span>
-                </label>
-
-                <label class="service-option">
-                  <input type="checkbox" name="serviceFood" value="1">
-                  <span><b>Alimentos y bebidas</b><small>Según plan contratado</small></span>
-                </label>
-
-                <label class="service-option">
-                  <input type="checkbox" name="serviceTours" value="1">
-                  <span><b>Tours / experiencias</b><small>Actividades incluidas</small></span>
-                </label>
-
-                <label class="service-option">
-                  <input type="checkbox" name="serviceBaggage" value="1">
-                  <span><b>Equipaje incluido</b><small>Según tarifa aérea</small></span>
-                </label>
+                <label class="service-option"><input type="checkbox" name="serviceFlights" value="1"><span><b>Transportación</b><small>Vuelos</small></span></label>
+                <label class="service-option"><input type="checkbox" name="serviceLodging" value="1"><span><b>Hospedaje</b><small>Hotel / alojamiento</small></span></label>
+                <label class="service-option"><input type="checkbox" name="serviceTransfers" value="1"><span><b>Traslados</b><small>Llegada / salida</small></span></label>
+                <label class="service-option"><input type="checkbox" name="serviceFood" value="1"><span><b>Alimentos y bebidas</b><small>Según plan</small></span></label>
+                <label class="service-option"><input type="checkbox" name="serviceTours" value="1"><span><b>Tours / experiencias</b><small>Actividades</small></span></label>
+                <label class="service-option"><input type="checkbox" name="serviceBaggage" value="1"><span><b>Equipaje incluido</b><small>Según tarifa</small></span></label>
               </div>
-
               <div class="fields-grid service-details-fields">
-                <label class="field span-2">
-                  <span>Detalle de alimentos y bebidas</span>
-                  <textarea name="foodDetails" rows="2" placeholder="Ej. Desayuno buffet / Todo incluido / Sin alimentos"></textarea>
-                </label>
-
-                <label class="field span-2">
-                  <span>Tours / experiencias incluidos</span>
-                  <textarea name="toursDetails" rows="3" placeholder="Describe tours, entradas, actividades o experiencias incluidas"></textarea>
-                </label>
-
-                <label class="field span-2">
-                  <span>Otros servicios incluidos</span>
-                  <textarea name="included" rows="3" placeholder="Cualquier otro servicio que deba aparecer en el voucher"></textarea>
-                </label>
+                <label class="field span-2"><span>Detalle de alimentos y bebidas</span><textarea name="foodDetails" rows="2"></textarea></label>
+                <label class="field span-2"><span>Tours / experiencias incluidos</span><textarea name="toursDetails" rows="3"></textarea></label>
+                <label class="field span-2"><span>Otros servicios incluidos</span><textarea name="included" rows="3"></textarea></label>
               </div>
             </div>
 
             <div class="form-section">
               <p class="eyebrow">6 · INVERSIÓN Y PAGOS</p>
               <div class="fields-grid">
-                <label class="field">
-                  <span>Precio total del viaje *</span>
-                  <input required type="number" min="0" step="0.01" name="totalPrice" placeholder="0.00">
-                </label>
-
-                <label class="field">
-                  <span>Anticipo</span>
-                  <input type="number" min="0" step="0.01" name="deposit" placeholder="0.00">
-                </label>
-
-                <label class="field">
-                  <span>Pagos realizados</span>
-                  <input type="number" min="0" step="0.01" name="paymentsMade" placeholder="0.00">
-                </label>
-
-                <label class="field">
-                  <span>Saldo pendiente</span>
-                  <input name="balancePreview" readonly placeholder="$0.00">
-                  <small class="field-hint">Se calcula automáticamente.</small>
-                </label>
-
-                <label class="field span-2">
-                  <span>Fecha límite de liquidación</span>
-                  <input type="date" name="paymentDeadline">
-                </label>
+                <label class="field"><span>Precio total del viaje *</span><input required type="number" min="0" step="0.01" name="totalPrice" placeholder="0.00"></label>
+                <label class="field"><span>Anticipo</span><input type="number" min="0" step="0.01" name="deposit" placeholder="0.00"></label>
+                <label class="field"><span>Pagos realizados</span><input type="number" min="0" step="0.01" name="paymentsMade" placeholder="0.00"></label>
+                <label class="field"><span>Saldo pendiente</span><input name="balancePreview" readonly placeholder="$0.00"></label>
+                <label class="field span-2"><span>Fecha límite de liquidación</span><input type="date" name="paymentDeadline"></label>
               </div>
             </div>
 
             <div class="form-section">
               <p class="eyebrow">7 · INFORMACIÓN IMPORTANTE</p>
               <div class="fixed-policy-box">
-                <p>Estas indicaciones aparecerán automáticamente en todos los vouchers:</p>
-                <ul>
-                  <li>Es responsabilidad del pasajero contar con la documentación necesaria para su viaje.</li>
-                  <li>Horarios de vuelos y servicios sujetos a cambios sin previo aviso.</li>
-                  <li>Cambios o cancelaciones están sujetos a las políticas de los proveedores.</li>
-                  <li>Impuestos, propinas y gastos personales no incluidos salvo indicación expresa.</li>
-                  <li>Recomendamos llegar al aeropuerto con anticipación suficiente.</li>
-                  <li>Conserva este documento durante todo tu viaje.</li>
-                </ul>
+                <p>El voucher final incluirá las 21 secciones de las Políticas y Condiciones Generales de Velora Travel antes de la firma.</p>
+                <small>La firma confirmará también su lectura y aceptación.</small>
               </div>
-
-              <label class="field">
-                <span>Observaciones adicionales del viaje</span>
-                <textarea name="notes" rows="4" placeholder="Indicaciones particulares para este pasajero"></textarea>
-              </label>
+              <label class="field"><span>Observaciones adicionales del viaje</span><textarea name="notes" rows="4"></textarea></label>
             </div>
 
             <div class="form-section">
               <p class="eyebrow">8 · CONTACTO VELORA TRAVEL</p>
               <div class="fields-grid">
-                <label class="field span-2">
-                  <span>Asesor asignado *</span>
-                  <input required name="advisor" placeholder="Nombre del asesor">
-                </label>
-
-                <label class="field">
-                  <span>WhatsApp</span>
-                  <input name="advisorWhatsapp" value="55 1900 0905">
-                </label>
-
-                <label class="field">
-                  <span>Correo de contacto</span>
-                  <input type="email" name="advisorEmail" value="hola@veloratravel.com">
-                </label>
-
-                <label class="field span-2">
-                  <span>Instagram</span>
-                  <input name="advisorInstagram" value="@veloratravel">
-                </label>
+                <label class="field span-2"><span>Asesor asignado *</span><input required name="advisor" placeholder="Nombre del asesor"></label>
+                <label class="field"><span>WhatsApp</span><input name="advisorWhatsapp" value="55 1900 0905"></label>
+                <label class="field"><span>Correo de contacto</span><input type="email" name="advisorEmail" value="hola@veloratravel.com"></label>
+                <label class="field span-2"><span>Instagram</span><input name="advisorInstagram" value="@veloratravel"></label>
               </div>
             </div>
 
             <div class="form-section">
               <p class="eyebrow">FIRMA Y ACEPTACIÓN</p>
-              <label class="field">
-                <span>Texto que aceptará el pasajero</span>
-                <textarea name="acceptance" rows="4">Confirmo que he revisado los datos de mi viaje y que la información mostrada en este cupón es correcta. Acepto los servicios, fechas y condiciones aquí descritos.</textarea>
-              </label>
+              <label class="field"><span>Texto de aceptación</span><textarea name="acceptance" rows="4">Confirmo que he revisado los datos de mi viaje, he leído las Políticas y Condiciones Generales de Velora Travel y acepto la información, servicios, fechas y condiciones aquí descritos.</textarea></label>
             </div>
 
             <div class="form-actions">
-              <button type="button" class="ghost-btn" id="fillDemo">Llenar ejemplo</button>
-              <button type="submit" class="primary-btn">Generar cupón</button>
+              <button type="button" class="ghost-btn" id="fillVoucherDemo">Llenar ejemplo</button>
+              <button type="submit" class="primary-btn">Generar voucher</button>
             </div>
-</form>
+          </form>
 
           <aside class="panel help-card">
-            <p class="eyebrow">FLUJO</p>
-            <h3>¿Qué pasa al generarlo?</h3>
+            <p class="eyebrow">DOCUMENTO FINAL</p>
+            <h3>Un solo enlace</h3>
             <ol>
-              <li><b>1</b><span>El sistema crea automáticamente un código único.</span></li>
-              <li><b>2</b><span>Obtienes el enlace para el pasajero.</span></li>
-              <li><b>3</b><span>El pasajero revisa y firma.</span></li>
-              <li><b>4</b><span>El estado cambia a <strong>Firmado</strong>.</span></li>
+              <li><b>1</b><span>Confirmación de viaje.</span></li>
+              <li><b>2</b><span>Boletaje visual de avión.</span></li>
+              <li><b>3</b><span>Políticas completas.</span></li>
+              <li><b>4</b><span>Aceptación y firma digital.</span></li>
             </ol>
-            <div class="mini-note">En la versión conectada a Supabase, el cambio aparecerá para todo el equipo y desde cualquier dispositivo.</div>
           </aside>
         </div>
       </section>
 
+      <!-- VOUCHERS LIST -->
       <section class="view" id="vouchersView">
         <div class="panel">
           <div class="panel-head vouchers-head">
-            <div>
-              <p class="eyebrow">HISTORIAL</p>
-              <h2>Todos los cupones</h2>
-            </div>
-            <div class="search">
-              <span>⌕</span>
-              <input id="searchVouchers" placeholder="Buscar pasajero, destino o folio">
-            </div>
+            <div><p class="eyebrow">HISTORIAL</p><h2>Vouchers</h2></div>
+            <div class="search"><span>⌕</span><input id="searchVouchers" placeholder="Buscar pasajero, destino o folio"></div>
           </div>
           <div class="table-wrap">
             <table>
-              <thead>
-                <tr>
-                  <th>Folio</th>
-                  <th>Pasajero</th>
-                  <th>Destino</th>
-                  <th>Creado</th>
-                  <th>Estado</th>
-                  <th>Firma</th>
-                  <th></th>
-                </tr>
-              </thead>
-              <tbody id="allTable"></tbody>
+              <thead><tr><th>Folio</th><th>Pasajero</th><th>Destino</th><th>Creado</th><th>Estado</th><th>Firma</th><th></th></tr></thead>
+              <tbody id="allVoucherTable"></tbody>
             </table>
           </div>
-          <div class="empty-state" id="allEmpty">
-            <div class="empty-icon">▣</div>
-            <h3>No encontramos cupones</h3>
-            <p>Cuando generes uno aparecerá aquí.</p>
-          </div>
+          <div class="empty-state" id="allVoucherEmpty"><div class="empty-icon">▣</div><h3>No hay vouchers</h3><p>Cuando generes uno aparecerá aquí.</p></div>
         </div>
       </section>
     </main>
@@ -467,20 +380,15 @@
 
   <div class="toast" id="toast"></div>
 
-  <div class="modal-backdrop" id="createdModal">
+  <div class="modal-backdrop" id="documentModal">
     <div class="modal">
       <button class="modal-close" id="modalClose">×</button>
       <div class="modal-icon">✓</div>
-      <p class="eyebrow">CUPÓN GENERADO</p>
-      <h2 id="modalFolio">VL-000001</h2>
-      <p>Ya puedes compartir este enlace con el pasajero.</p>
-      <div class="link-box">
-        <input id="modalLink" readonly>
-        <button class="ghost-btn" id="copyLink">Copiar</button>
-      </div>
-      <div class="modal-actions">
-        <a class="primary-btn anchor-btn" id="openPassenger" href="#">Abrir vista del pasajero</a>
-      </div>
+      <p class="eyebrow" id="modalType">DOCUMENTO GENERADO</p>
+      <h2 id="modalFolio">—</h2>
+      <p id="modalText">Ya puedes abrirlo o copiar el enlace.</p>
+      <div class="link-box"><input id="modalLink" readonly><button class="ghost-btn" id="copyLink">Copiar</button></div>
+      <div class="modal-actions"><a class="primary-btn anchor-btn" id="openDocument" href="#">Abrir documento</a></div>
     </div>
   </div>
 

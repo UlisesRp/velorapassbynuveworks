@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Velora Travel · Cotización</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="voucher-body quote-body">
+  <main class="quote-public-wrap">
+    <article class="quote-document">
+      <header class="quote-hero">
+        <img src="assets/velora-logo.png" alt="Velora Travel">
+        <div class="quote-hero-meta">
+          <span>COTIZACIÓN DE VIAJE</span>
+          <strong id="qFolio">—</strong>
+          <small>Emitida <b id="qIssued">—</b></small>
+          <small>Válida hasta <b id="qValidUntil">—</b></small>
+        </div>
+      </header>
+
+      <section class="quote-intro">
+        <p class="eyebrow">PROPUESTA PARA</p>
+        <h1 id="qClient">—</h1>
+        <p id="qTitle">—</p>
+      </section>
+
+      <section class="quote-trip-card">
+        <div><small>DESTINO</small><strong id="qDestination">—</strong></div>
+        <div><small>FECHAS</small><strong id="qDates">—</strong></div>
+        <div><small>DURACIÓN</small><strong id="qDuration">—</strong></div>
+        <div><small>VIAJEROS</small><strong id="qTravelers">—</strong></div>
+      </section>
+
+      <section class="quote-section">
+        <div class="single-section-head">SERVICIOS COTIZADOS</div>
+        <div class="quote-items-table">
+          <div class="quote-items-head"><span>Concepto</span><span>Detalle</span><span>Importe</span></div>
+          <div id="qItems"></div>
+          <div class="quote-grand-total"><span>TOTAL</span><strong id="qTotal">—</strong></div>
+        </div>
+      </section>
+
+      <section class="quote-three-grid">
+        <div class="quote-info-box"><small>ANTICIPO PARA RESERVAR</small><strong id="qDeposit">—</strong></div>
+        <div class="quote-info-box"><small>FECHA LÍMITE DE LIQUIDACIÓN</small><strong id="qDeadline">—</strong></div>
+        <div class="quote-info-box"><small>TIPO DE VIAJE</small><strong id="qTripType">—</strong></div>
+      </section>
+
+      <section class="quote-two-grid">
+        <div class="quote-text-box"><h3>Incluye</h3><div id="qIncludes">—</div></div>
+        <div class="quote-text-box"><h3>No incluye</h3><div id="qExcludes">—</div></div>
+      </section>
+
+      <section class="quote-text-box quote-notes"><h3>Notas y observaciones</h3><div id="qNotes">—</div></section>
+
+      <section class="quote-terms">
+        <h3>Información importante</h3>
+        <p>Los servicios incluidos serán únicamente los expresamente señalados en esta cotización. La disponibilidad y tarifas pueden cambiar hasta que la reservación quede confirmada.</p>
+        <p>Los anticipos, pagos parciales y liquidaciones deberán realizarse en las fechas indicadas. Los cambios o cancelaciones estarán sujetos a las condiciones de los proveedores involucrados.</p>
+      </section>
+
+      <footer class="quote-footer">
+        <div><small>ASESOR</small><strong id="qAdvisor">—</strong></div>
+        <div><small>WHATSAPP</small><strong id="qWhatsapp">—</strong></div>
+        <div><small>CORREO</small><strong id="qEmail">—</strong></div>
+      </footer>
+
+      <div class="quote-actions print-hide"><button class="primary-btn" onclick="window.print()">Imprimir / guardar PDF</button></div>
+    </article>
+  </main>
+  <script src="quote.js"></script>
+</body>
+</html>

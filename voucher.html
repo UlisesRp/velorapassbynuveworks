@@ -12,11 +12,8 @@
 <body class="voucher-body document-voucher">
   <main class="confirmation-wrap">
     <section class="confirmation-sheet">
-
       <header class="confirmation-header">
-        <div class="confirmation-logo-box">
-          <img src="assets/velora-logo.png" alt="Velora Travel" class="confirmation-logo">
-        </div>
+        <div class="confirmation-logo-box"><img src="assets/velora-logo.png" alt="Velora Travel" class="confirmation-logo"></div>
         <div class="confirmation-meta">
           <span>VIAJE CONFIRMADO</span>
           <small>No. DE CONFIRMACIÓN</small>
@@ -34,10 +31,7 @@
       </section>
 
       <section class="doc-block">
-        <div class="dual-section-head">
-          <div>1&nbsp; DATOS DEL VIAJERO</div>
-          <div>2&nbsp; DETALLES DEL VIAJE</div>
-        </div>
+        <div class="dual-section-head"><div>1&nbsp; DATOS DEL VIAJERO</div><div>2&nbsp; DETALLES DEL VIAJE</div></div>
         <div class="doc-two-col">
           <div class="doc-data">
             <p><b>Nombre completo:</b> <span id="vPassenger">—</span></p>
@@ -57,17 +51,14 @@
       </section>
 
       <section class="doc-block">
-        <div class="dual-section-head">
-          <div>3&nbsp; TRANSPORTACIÓN</div>
-          <div>4&nbsp; HOSPEDAJE</div>
-        </div>
+        <div class="dual-section-head"><div>3&nbsp; TRANSPORTACIÓN</div><div>4&nbsp; HOSPEDAJE</div></div>
         <div class="doc-two-col">
           <div class="doc-data">
-            <p><b>Aerolínea / Operador:</b> <span id="vAirline">—</span></p>
-            <p><b>Vuelo de salida:</b> <span id="vOutboundFlight">—</span></p>
+            <p><b>Operador:</b> <span id="vTransportOperator">—</span></p>
+            <p><b>Vuelo de salida:</b> <span id="vOutboundSummary">—</span></p>
             <p><b>Fecha y horario:</b> <span id="vOutboundFlightTime">—</span></p>
             <p><b>Localizador vuelo ida:</b> <span id="vOutboundFlightLocator">—</span></p>
-            <p><b>Vuelo de regreso:</b> <span id="vReturnFlight">—</span></p>
+            <p><b>Vuelo de regreso:</b> <span id="vReturnSummary">—</span></p>
             <p><b>Fecha y horario:</b> <span id="vReturnFlightTime">—</span></p>
             <p><b>Localizador vuelo regreso:</b> <span id="vReturnFlightLocator">—</span></p>
             <p><b>Traslado de llegada:</b> <span id="vArrivalTransferLocator">—</span></p>
@@ -97,9 +88,9 @@
           <div id="serviceBaggageCard">✦<strong>EQUIPAJE<br>INCLUIDO</strong></div>
         </div>
         <div class="service-detail-list">
-          <p id="vFoodDetailsRow"><b>Alimentos y bebidas:</b> <span id="vFoodDetails">—</span></p>
-          <p id="vToursDetailsRow"><b>Tours / experiencias:</b> <span id="vToursDetails">—</span></p>
-          <p id="vOtherIncludedRow"><b>Otros servicios:</b> <span id="vIncluded">—</span></p>
+          <p><b>Alimentos y bebidas:</b> <span id="vFoodDetails">—</span></p>
+          <p><b>Tours / experiencias:</b> <span id="vToursDetails">—</span></p>
+          <p><b>Otros servicios:</b> <span id="vIncluded">—</span></p>
         </div>
       </section>
 
@@ -137,26 +128,253 @@
         <p><b>Asesor asignado:</b> <span id="vAdvisor">—</span> &nbsp;|&nbsp; <b>WhatsApp:</b> <span id="vAdvisorWhatsapp">—</span> &nbsp;|&nbsp; <b>Correo:</b> <span id="vAdvisorEmail">—</span> &nbsp;|&nbsp; <b>Instagram:</b> <span id="vAdvisorInstagram">—</span></p>
       </section>
 
+      <footer class="confirmation-footer">
+        <strong>Gracias por confiar en Velora Travel.</strong>
+        <span>Estamos aquí para hacer de tu viaje una experiencia inolvidable.</span>
+        <b>EL MUNDO MERECE CONOCERTE</b>
+      </footer>
+
+      <!-- BOLETAJE VISUAL: construido en HTML/CSS, no es una imagen -->
+      <section class="flight-ticket-section">
+        <div class="ticket-label">BOLETAJE DE AVIÓN</div>
+        <article class="flight-ticket">
+          <div class="ticket-main">
+            <div class="ticket-top">
+              <img src="assets/velora-logo.png" alt="Velora Travel">
+              <div class="ticket-title"><h2>BOLETAJE DE AVIÓN</h2><p>DOCUMENTO NO TRANSFERIBLE</p></div>
+              <div class="plane-icon">✈</div>
+            </div>
+            <div class="ticket-route-grid">
+              <section class="ticket-leg">
+                <h3>✈ VUELO DE IDA</h3>
+                <div class="ticket-mini-grid">
+                  <div><small>AEROLÍNEA</small><strong id="tOutAirline">—</strong></div>
+                  <div><small>VUELO</small><strong id="tOutFlight">—</strong></div>
+                  <div><small>FECHA</small><strong id="tOutDate">—</strong></div>
+                </div>
+                <div class="airport-route">
+                  <div><strong id="tOutOriginCode">—</strong><small id="tOutOriginCity">—</small></div>
+                  <div class="route-line">···· ✈ ····</div>
+                  <div><strong id="tOutDestCode">—</strong><small id="tOutDestCity">—</small></div>
+                </div>
+                <div class="ticket-times">
+                  <div><small>SALIDA</small><strong id="tOutDeparture">—</strong></div>
+                  <div><small>TERMINAL</small><strong id="tOutDepTerminal">—</strong></div>
+                  <div><small>LLEGADA</small><strong id="tOutArrival">—</strong></div>
+                  <div><small>TERMINAL</small><strong id="tOutArrTerminal">—</strong></div>
+                </div>
+              </section>
+
+              <section class="ticket-leg">
+                <h3>✈ VUELO DE REGRESO</h3>
+                <div class="ticket-mini-grid">
+                  <div><small>AEROLÍNEA</small><strong id="tReturnAirline">—</strong></div>
+                  <div><small>VUELO</small><strong id="tReturnFlight">—</strong></div>
+                  <div><small>FECHA</small><strong id="tReturnDate">—</strong></div>
+                </div>
+                <div class="airport-route">
+                  <div><strong id="tReturnOriginCode">—</strong><small id="tReturnOriginCity">—</small></div>
+                  <div class="route-line">···· ✈ ····</div>
+                  <div><strong id="tReturnDestCode">—</strong><small id="tReturnDestCity">—</small></div>
+                </div>
+                <div class="ticket-times">
+                  <div><small>SALIDA</small><strong id="tReturnDeparture">—</strong></div>
+                  <div><small>TERMINAL</small><strong id="tReturnDepTerminal">—</strong></div>
+                  <div><small>LLEGADA</small><strong id="tReturnArrival">—</strong></div>
+                  <div><small>TERMINAL</small><strong id="tReturnArrTerminal">—</strong></div>
+                </div>
+              </section>
+            </div>
+            <div class="ticket-bottom">
+              <div class="baggage-band">
+                <span>EQUIPAJE INCLUIDO</span>
+                <strong>▣ <span id="tCarryOn">—</span></strong>
+                <strong>▰ <span id="tChecked">—</span></strong>
+              </div>
+              <div class="ticket-warning"><b>IMPORTANTE</b><span>Este documento no sustituye el pase de abordar emitido por la aerolínea.</span></div>
+            </div>
+          </div>
+
+          <aside class="ticket-stub">
+            <div class="stub-locator"><small>LOCALIZADOR IDA</small><strong id="tOutLocator">—</strong></div>
+            <div class="stub-airline" id="tStubAirline">AEROLÍNEA</div>
+            <div class="stub-data">
+              <small>PASAJERO</small><strong id="tPassenger">—</strong>
+              <small>RUTA</small><strong><span id="tRouteOrigin">—</span> ⇄ <span id="tRouteDest">—</span></strong>
+              <small>LOCALIZADOR REGRESO</small><strong id="tReturnLocator">—</strong>
+              <small>FECHA DE EMISIÓN</small><strong id="tIssueDate">—</strong>
+            </div>
+            <div class="fake-barcode" aria-hidden="true"></div>
+            <div class="stub-code" id="tDocCode">—</div>
+          </aside>
+        </article>
+      </section>
+
+      <!-- POLÍTICAS COMPLETAS DEL DOCUMENTO DEL USUARIO -->
+      <section class="policies-document">
+        <header class="policies-header">
+          <img src="assets/velora-logo.png" alt="Velora Travel">
+          <div>
+            <p class="eyebrow">VELORA TRAVEL</p>
+            <h2>POLÍTICAS Y CONDICIONES GENERALES DE SERVICIO</h2>
+            <p>Las presentes Políticas y Condiciones Generales forman parte integral de la contratación de los servicios turísticos comercializados por Velora Travel y deberán ser leídas y aceptadas por EL CLIENTE antes de realizar cualquier pago o confirmar su reservación.</p>
+          </div>
+        </header>
+        <div class="policies-grid">
+          <article class="policy-card">
+              <h3>1. SERVICIOS E ITINERARIOS</h3>
+              <p>1.1. Los servicios incluidos en el paquete serán los expresamente señalados en la cotización, confirmación de reserva, itinerario, voucher, boleto o documento correspondiente.</p>
+<p>1.2. El orden de las actividades, excursiones, traslados y servicios podrá ser modificado por el operador o prestador local cuando las circunstancias operativas, climáticas, de seguridad, logística o disponibilidad así lo requieran, procurando mantener, en la medida de lo posible, la prestación de los servicios contratados.</p>
+<p>1.3. Cualquier modificación relevante será comunicada al pasajero cuando las circunstancias permitan realizar dicha comunicación con anticipación.</p>
+            </article>
+<article class="policy-card">
+              <h3>2. PUNTUALIDAD Y NO PRESENTACIÓN</h3>
+              <p>2.1. Salvo que se indique expresamente lo contrario, el punto de encuentro o inicio de los servicios será el aeropuerto, hotel, punto de reunión o lugar señalado en la documentación de viaje.</p>
+<p>2.2. La falta de presentación del pasajero en el lugar, fecha y hora previamente confirmados, tanto para el inicio del viaje como para traslados, excursiones o actividades, podrá considerarse como NO SHOW y podrá ocasionar la pérdida total o parcial del servicio correspondiente, sin derecho a reembolso cuando así lo establezcan las condiciones del proveedor.</p>
+<p>2.3. El pasajero será responsable de presentarse con la anticipación necesaria para cumplir con los horarios establecidos.</p>
+            </article>
+<article class="policy-card">
+              <h3>3. CANCELACIONES Y PENALIZACIONES</h3>
+              <p>3.1. Las cancelaciones deberán solicitarse por escrito a Velora Travel y estarán sujetas a las políticas de cancelación de los proveedores que intervengan en la prestación de los servicios.</p>
+<p>3.2. Para los servicios terrestres que se rijan por la siguiente política general, podrán aplicarse las siguientes penalizaciones sobre el valor correspondiente del servicio:</p>
+<p>De 45 a 25 días antes de la salida: 10%.</p>
+<p>De 24 a 20 días antes de la salida: 20%.</p>
+<p>De 19 a 15 días antes de la salida: 30%.</p>
+<p>De 14 a 10 días antes de la salida: 50%.</p>
+<p>Menos de 10 días antes de la salida: 100%.</p>
+<p>3.3. Algunos servicios podrán contar con políticas de cancelación diferentes, incluyendo vuelos, hoteles, cruceros, eventos, tours, servicios promocionales, tarifas especiales o servicios contratados bajo condiciones no reembolsables. En estos casos, prevalecerán las condiciones particulares informadas al momento de la contratación.</p>
+<p>3.4. El monto de cualquier reembolso, cuando corresponda, será determinado una vez aplicadas las penalizaciones, cargos y condiciones establecidos por los proveedores involucrados.</p>
+            </article>
+<article class="policy-card">
+              <h3>4. TRASLADOS</h3>
+              <p>4.1. Para los servicios de traslado confirmados, el conductor o representante del operador local podrá portar una señalización con el nombre del pasajero, grupo, paquete o servicio contratado.</p>
+<p>4.2. El pasajero deberá proporcionar correctamente sus datos de llegada y salida, así como mantenerse atento a las instrucciones proporcionadas por Velora Travel y/o el operador local.</p>
+            </article>
+<article class="policy-card">
+              <h3>5. VUELOS Y TRANSPORTE</h3>
+              <p>5.1. Cualquier demora, cancelación, modificación o interrupción de un vuelo, tren u otro medio de transporte ocasionado por la empresa transportista será atendido conforme a las políticas, condiciones y obligaciones aplicables de dicho transportista.</p>
+<p>5.2. Velora Travel brindará orientación y apoyo al pasajero para gestionar, cuando corresponda, las modificaciones, reprogramaciones o reclamaciones ante el proveedor responsable.</p>
+<p>5.3. Se recomienda al pasajero verificar, al menos 24 horas antes de su salida, los horarios y condiciones de su vuelo directamente en los canales oficiales de la aerolínea correspondiente.</p>
+<p>5.4. En caso de demora, cancelación, cambio de horario o modificación de vuelo, el pasajero deberá informar oportunamente a Velora Travel y/o al prestador local para facilitar las gestiones necesarias.</p>
+            </article>
+<article class="policy-card">
+              <h3>6. EQUIPAJE</h3>
+              <p>6.1. La franquicia de equipaje, dimensiones, peso y restricciones serán las establecidas por la aerolínea o transportista correspondiente y podrán variar según la ruta, tarifa, clase y condiciones de la reserva.</p>
+<p>6.2. Cualquier pieza adicional, exceso de peso, equipaje especial o servicio adicional que genere un cargo será cubierto directamente por EL CLIENTE cuando corresponda.</p>
+<p>6.3. Cuando el pasajero requiera transportar equipaje especial o una cantidad superior a la contemplada en su reserva, deberá informarlo con anticipación para verificar disponibilidad y costos adicionales.</p>
+            </article>
+<article class="policy-card">
+              <h3>7. HOSPEDAJE</h3>
+              <p>7.1. Las características, categoría, régimen de alimentos y tipo de habitación serán los establecidos en la confirmación de servicios.</p>
+<p>7.2. En habitaciones triples, salvo que se especifique expresamente una cama adicional, podrán utilizarse únicamente las camas disponibles en la habitación, pudiendo ser necesario que uno de los pasajeros comparta cama.</p>
+<p>7.3. Las solicitudes especiales de cama, ubicación, habitaciones comunicadas, pisos, vistas o características particulares estarán sujetas a disponibilidad y no se considerarán garantizadas salvo confirmación expresa por escrito.</p>
+<p>7.4. En caso de que el pasajero considere que existen deficiencias en la habitación o instalaciones del hotel, deberá reportarlas inmediatamente a la recepción del establecimiento para solicitar la atención, corrección o cambio correspondiente. Velora Travel podrá brindar apoyo en la gestión ante el establecimiento.</p>
+<p>7.5. Se recomienda utilizar las cajas de seguridad proporcionadas por el establecimiento para resguardar objetos de valor y dinero. La responsabilidad por dichos objetos se determinará conforme a las condiciones del establecimiento y la legislación aplicable.</p>
+            </article>
+<article class="policy-card">
+              <h3>8. DOCUMENTACIÓN PARA VIAJAR</h3>
+              <p>8.1. Es responsabilidad de EL CLIENTE verificar y contar oportunamente con la documentación necesaria para realizar su viaje, incluyendo pasaporte vigente, visas, permisos, autorizaciones, vacunas, requisitos sanitarios y demás documentos exigidos por las autoridades del país de origen, tránsito o destino.</p>
+<p>8.2. Para viajes internacionales, EL CLIENTE deberá verificar los requisitos migratorios vigentes directamente con las autoridades oficiales correspondientes, ya que éstos pueden modificarse sin previo aviso.</p>
+<p>8.3. Velora Travel podrá proporcionar orientación general sobre los requisitos conocidos al momento de la contratación; sin embargo, la obtención, vigencia y cumplimiento de la documentación necesaria corresponde al pasajero.</p>
+<p>8.4. La imposibilidad de viajar derivada de la falta de documentación, permisos, visas o autorizaciones requeridas estará sujeta a las políticas de cancelación y cambios de los proveedores contratados.</p>
+            </article>
+<article class="policy-card">
+              <h3>9. EQUIPAJE EXTRAVIADO O DAÑADO</h3>
+              <p>9.1. En caso de retraso, pérdida, daño o falta de entrega del equipaje, EL CLIENTE deberá reportarlo inmediatamente ante la aerolínea o transportista correspondiente y obtener el comprobante o reporte respectivo.</p>
+<p>9.2. Velora Travel podrá brindar orientación y apoyo en el seguimiento de la reclamación ante el transportista, sin perjuicio de los derechos que correspondan al pasajero frente a la empresa transportista responsable.</p>
+            </article>
+<article class="policy-card">
+              <h3>10. MENORES DE EDAD</h3>
+              <p>10.1. Cuando un menor viaje sin la compañía de uno o ambos padres o tutores, EL CLIENTE deberá realizar previamente los trámites, autorizaciones y documentos requeridos por las autoridades, aerolíneas, transportistas y demás prestadores involucrados.</p>
+<p>10.2. La falta de dichos documentos podrá impedir el viaje o la prestación del servicio y estará sujeta a las condiciones de cancelación y modificación correspondientes.</p>
+            </article>
+<article class="policy-card">
+              <h3>11. DATOS PARA LA EMISIÓN DE BOLETOS Y RESERVACIONES</h3>
+              <p>11.1. EL CLIENTE será responsable de proporcionar correctamente los nombres, apellidos, fechas de nacimiento, sexo, fechas de viaje, rutas y demás información necesaria para la emisión de boletos y reservaciones.</p>
+<p>11.2. Una vez emitidos los boletos o confirmados los servicios, cualquier modificación o corrección estará sujeta a las políticas, disponibilidad y cargos establecidos por el proveedor correspondiente.</p>
+<p>11.3. Cuando la modificación sea consecuencia de información incorrecta proporcionada por EL CLIENTE, los cargos, penalizaciones o diferencias de tarifa que correspondan serán cubiertos por EL CLIENTE.</p>
+<p>11.4. Cuando se detecte un error atribuible a Velora Travel en la captura o gestión de información proporcionada correctamente por EL CLIENTE, el caso será revisado y atendido conforme corresponda.</p>
+            </article>
+<article class="policy-card">
+              <h3>12. PAGOS</h3>
+              <p>12.1. EL CLIENTE se obliga a realizar los anticipos, pagos parciales y liquidaciones en las fechas establecidas en su cotización, confirmación de reserva o calendario de pagos.</p>
+<p>12.2. La falta de pago en las fechas establecidas podrá ocasionar la cancelación de la reservación o de los servicios contratados, de acuerdo con las condiciones del proveedor correspondiente.</p>
+<p>12.3. Los importes pagados serán aplicados conforme a las condiciones de contratación y a las penalizaciones, cargos y gastos efectivamente generados por los proveedores involucrados.</p>
+<p>12.4. La falta de pago no libera a EL CLIENTE de las obligaciones que se hubieran generado previamente con motivo de la contratación.</p>
+            </article>
+<article class="policy-card">
+              <h3>13. CAMBIOS SOLICITADOS POR EL CLIENTE</h3>
+              <p>13.1. Cualquier cambio de nombre, fecha, ruta, hotel, habitación, vuelo, traslado, excursión o cualquier otro elemento del viaje deberá solicitarse por escrito y estará sujeto a disponibilidad y a las condiciones del proveedor.</p>
+<p>13.2. Las diferencias de tarifa, cargos administrativos, penalizaciones y demás costos derivados de modificaciones solicitadas por EL CLIENTE serán informados previamente y, en su caso, deberán ser cubiertos por éste.</p>
+            </article>
+<article class="policy-card">
+              <h3>14. CANCELACIÓN POR PARTE DE VELORA TRAVEL Y REEMBOLSOS</h3>
+              <p>14.1. Cuando Velora Travel deba cancelar un servicio por causas directamente imputables a la propia agencia y no atribuibles a EL CLIENTE, Velora Travel gestionará el reembolso que corresponda conforme a las condiciones de contratación y a la legislación aplicable.</p>
+<p>14.2. Cuando la cancelación, modificación o imposibilidad de prestación del servicio derive de causas atribuibles a aerolíneas, hoteles, operadores, transportistas, autoridades, fenómenos naturales, restricciones gubernamentales, situaciones de seguridad u otras circunstancias ajenas al control de Velora Travel, se aplicarán las políticas y procedimientos establecidos por los proveedores correspondientes.</p>
+<p>14.3. En los casos en que proceda un reembolso, Velora Travel realizará las gestiones correspondientes ante los proveedores involucrados para solicitar y dar seguimiento a la devolución de los importes que correspondan.</p>
+<p>14.4. El tiempo estimado para la recepción y procesamiento del reembolso será de 30 a 90 días hábiles, dependiendo de los procesos administrativos, políticas, tiempos de respuesta y liberación de fondos establecidos por cada aerolínea, hotel, operador terrestre, naviera, tour operador o demás prestadores de servicios involucrados en la reservación.</p>
+<p>14.5. El plazo de 30 a 90 días hábiles comenzará a contar a partir de que el proveedor correspondiente autorice y/o inicie formalmente el proceso de reembolso, cuando dicha condición sea aplicable.</p>
+<p>14.6. Velora Travel mantendrá informado a EL CLIENTE sobre el avance de la gestión y brindará el seguimiento correspondiente hasta la conclusión del proceso.</p>
+<p>14.7. Cuando el retraso en el reembolso sea atribuible exclusivamente al proveedor del servicio, los tiempos de procesamiento estarán sujetos a las condiciones y procedimientos establecidos por dicho proveedor.</p>
+            </article>
+<article class="policy-card">
+              <h3>15. ATENCIÓN DE QUEJAS Y ACLARACIONES</h3>
+              <p>15.1. Cualquier inconformidad relacionada con los servicios contratados deberá comunicarse a Velora Travel tan pronto como sea posible y, preferentemente, durante la prestación del servicio, con la finalidad de permitir que se gestione una solución oportuna.</p>
+<p>15.2. Las reclamaciones deberán acompañarse, cuando corresponda, de comprobantes de pago, vouchers, fotografías, reportes, folios o cualquier documento que permita acreditar los hechos.</p>
+<p>15.3. Sin perjuicio de lo anterior, EL CLIENTE conserva en todo momento su derecho de acudir ante la Procuraduría Federal del Consumidor (PROFECO) para presentar quejas, reclamaciones o solicitudes de conciliación relacionadas con los servicios contratados.</p>
+            </article>
+<article class="policy-card">
+              <h3>16. NATURALEZA DE INTERMEDIACIÓN DE VELORA TRAVEL</h3>
+              <p>16.1. Velora Travel actúa en calidad de intermediario entre EL CLIENTE y los diversos prestadores de servicios turísticos (aerolíneas, hoteles, operadores terrestres, navieras, arrendadoras de automóviles, organizadores de excursiones y demás proveedores), gestionando la contratación de los servicios solicitados por EL CLIENTE.</p>
+<p>16.2. En consecuencia, Velora Travel no es responsable de la ejecución material, calidad, seguridad ni cumplimiento directo de los servicios prestados por terceros, sin perjuicio de las gestiones de apoyo, orientación y seguimiento que Velora Travel realice ante dichos proveedores en beneficio de EL CLIENTE conforme a lo señalado en las presentes políticas.</p>
+<p>16.3. La responsabilidad de cada prestador de servicios se regirá por sus propios términos, condiciones, políticas y por la legislación aplicable a su actividad.</p>
+            </article>
+<article class="policy-card">
+              <h3>17. SEGURO DE VIAJERO Y ASISTENCIA EN VIAJE</h3>
+              <p>17.1. Se recomienda ampliamente a EL CLIENTE contratar un seguro de viajero o de asistencia en viaje que cubra, entre otros conceptos, gastos médicos, cancelación de viaje, pérdida o retraso de equipaje y demás contingencias que pudieran presentarse antes o durante el viaje.</p>
+<p>17.2. Salvo que se contrate expresamente como parte del paquete, la contratación del seguro de viajero será responsabilidad exclusiva de EL CLIENTE.</p>
+<p>17.3. Velora Travel podrá ofrecer opciones de seguro de viaje a través de terceros proveedores, sin que ello implique responsabilidad de Velora Travel respecto de la cobertura, vigencia o cumplimiento de las condiciones de dicho seguro, las cuales se regirán por los términos de la aseguradora correspondiente.</p>
+            </article>
+<article class="policy-card">
+              <h3>18. CASO FORTUITO Y FUERZA MAYOR</h3>
+              <p>18.1. Velora Travel no será responsable por el incumplimiento, retraso o modificación de los servicios contratados cuando éstos deriven de caso fortuito o fuerza mayor, incluyendo, de manera enunciativa mas no limitativa: fenómenos naturales, condiciones climáticas adversas, desastres naturales, actos de autoridad, restricciones gubernamentales, huelgas, disturbios civiles, actos terroristas, conflictos bélicos, epidemias, pandemias, contingencias sanitarias, cierre de fronteras o espacios aéreos, y demás circunstancias ajenas a la voluntad y control de Velora Travel.</p>
+<p>18.2. En dichos casos, Velora Travel brindará a EL CLIENTE la orientación y el apoyo necesarios para gestionar, ante los proveedores correspondientes, las alternativas, reprogramaciones o reembolsos que resulten procedentes conforme a las políticas de cada prestador de servicios.</p>
+            </article>
+<article class="policy-card">
+              <h3>19. PROTECCIÓN DE DATOS PERSONALES</h3>
+              <p>19.1. Los datos personales proporcionados por EL CLIENTE serán tratados por Velora Travel conforme a lo establecido en su Aviso de Privacidad, mismo que estará disponible en el sitio web de Velora Travel y que forma parte integral de las presentes Políticas y Condiciones Generales.</p>
+<p>19.2. Los datos personales serán utilizados única y exclusivamente para las finalidades relacionadas con la cotización, contratación, gestión y prestación de los servicios turísticos solicitados por EL CLIENTE, así como para dar cumplimiento a las obligaciones legales y contractuales correspondientes.</p>
+<p>19.3. EL CLIENTE podrá ejercer en cualquier momento sus derechos de acceso, rectificación, cancelación y oposición (derechos ARCO) respecto de sus datos personales, en los términos y a través de los medios señalados en el Aviso de Privacidad de Velora Travel.</p>
+<p>19.4. Cuando la prestación de un servicio requiera compartir datos personales de EL CLIENTE con aerolíneas, hoteles, operadores u otros prestadores de servicios, dicha transferencia se realizará únicamente en la medida necesaria para la contratación y prestación del servicio correspondiente.</p>
+            </article>
+<article class="policy-card">
+              <h3>20. LEGISLACIÓN APLICABLE Y JURISDICCIÓN</h3>
+              <p>20.1. Las presentes Políticas y Condiciones Generales, así como cualquier controversia derivada de la contratación de servicios con Velora Travel, se regirán e interpretarán conforme a la legislación aplicable de los Estados Unidos Mexicanos.</p>
+<p>20.2. Para la interpretación y cumplimiento de las presentes condiciones, las partes se someten a la jurisdicción de los tribunales competentes, sin perjuicio del derecho de EL CLIENTE, en su calidad de consumidor, de acudir ante la Procuraduría Federal del Consumidor (PROFECO) para presentar quejas, reclamaciones o solicitudes de conciliación relacionadas con los servicios contratados.</p>
+            </article>
+<article class="policy-card">
+              <h3>21. ACEPTACIÓN DE LAS CONDICIONES</h3>
+              <p>21.1. EL CLIENTE manifiesta que ha recibido, leído y comprendido las presentes Políticas y Condiciones Generales, así como las condiciones particulares de los servicios contratados.</p>
+<p>21.2. La firma del contrato, aceptación electrónica, confirmación escrita de la reserva o realización del pago constituirá constancia de aceptación de las condiciones aplicables al servicio contratado, sin perjuicio de los derechos que correspondan al consumidor conforme a la legislación aplicable.</p>
+            </article>
+        </div>
+        <div class="policies-closing"><strong>VELORA TRAVEL</strong><span>El mundo merece conocerte.</span></div>
+      </section>
+
       <section class="signature-section document-signature" id="signatureSection">
         <p class="eyebrow">CONFIRMACIÓN DEL PASAJERO</p>
         <h2>Firma de conformidad</h2>
         <p class="acceptance-text" id="vAcceptance"></p>
         <label class="check-line">
           <input type="checkbox" id="acceptCheck">
-          <span>He revisado la información de mi viaje y estoy de acuerdo.</span>
+          <span>He revisado la información de mi viaje y he leído y acepto las Políticas y Condiciones Generales de Velora Travel.</span>
         </label>
-        <label class="field">
-          <span>Nombre de quien firma</span>
-          <input id="signerName" placeholder="Escribe tu nombre completo">
-        </label>
+        <label class="field"><span>Nombre de quien firma</span><input id="signerName" placeholder="Escribe tu nombre completo"></label>
         <div class="signature-pad-wrap">
-          <div class="signature-label">
-            <span>Firma aquí con el dedo o mouse</span>
-            <button type="button" class="text-btn" id="clearSignature">Limpiar</button>
-          </div>
+          <div class="signature-label"><span>Firma aquí con el dedo o mouse</span><button type="button" class="text-btn" id="clearSignature">Limpiar</button></div>
           <canvas id="signaturePad"></canvas>
         </div>
-        <button class="primary-btn full-btn" id="signButton">Firmar y confirmar cupón</button>
+        <button class="primary-btn full-btn" id="signButton">Firmar y confirmar voucher</button>
         <p class="privacy-copy">Al confirmar se guardará la firma junto con la fecha y hora de aceptación.</p>
       </section>
 
@@ -169,15 +387,8 @@
         <div class="saved-signature"><img id="proofSignature" alt="Firma del pasajero"></div>
         <button class="ghost-btn full-btn print-hide" onclick="window.print()">Imprimir / guardar PDF</button>
       </section>
-
-      <footer class="confirmation-footer">
-        <strong>Gracias por confiar en Velora Travel.</strong>
-        <span>Estamos aquí para hacer de tu viaje una experiencia inolvidable.</span>
-        <b>EL MUNDO MERECE CONOCERTE</b>
-      </footer>
     </section>
   </main>
-
   <div class="toast" id="toast"></div>
   <script src="voucher.js"></script>
 </body>

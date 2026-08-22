@@ -1,178 +1,57 @@
-const STORAGE_KEY = "veloraPassVouchersV1";
-const $ = s => document.querySelector(s);
-const params = new URLSearchParams(location.search);
-const id = params.get("id");
-const vouchers = () => { try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; } catch { return []; } };
-const save = items => localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+const STORAGE_KEY="veloraPassVouchersV1";
+const $=s=>document.querySelector(s);
+const id=new URLSearchParams(location.search).get("id");
+const getAll=()=>{try{return JSON.parse(localStorage.getItem(STORAGE_KEY))||[]}catch{return[]}};
+const save=items=>localStorage.setItem(STORAGE_KEY,JSON.stringify(items));
+const getVoucher=()=>getAll().find(v=>v.id===id);
 
-function formatDate(v){
-  if(!v) return "—";
-  return new Intl.DateTimeFormat("es-MX",{day:"numeric",month:"long",year:"numeric"}).format(new Date(v+"T12:00:00"));
-}
-function formatDateTime(v){
-  return new Intl.DateTimeFormat("es-MX",{dateStyle:"long",timeStyle:"short"}).format(new Date(v));
-}
-function money(v){
-  const n = Number(v || 0);
-  return new Intl.NumberFormat("es-MX",{style:"currency",currency:"MXN"}).format(n);
-}
-function dateDiff(start,end){
-  if(!start || !end) return {days:0,nights:0};
-  const a = new Date(start+"T12:00:00");
-  const b = new Date(end+"T12:00:00");
-  const nights = Math.max(0, Math.round((b-a)/86400000));
-  return {days:nights+1,nights};
-}
-function toast(msg){
-  const el=$("#toast"); el.textContent=msg; el.classList.add("show");
-  setTimeout(()=>el.classList.remove("show"),2400);
-}
-function getVoucher(){ return vouchers().find(v=>v.id===id); }
+function fmtDate(v){if(!v)return"—";return new Intl.DateTimeFormat("es-MX",{day:"numeric",month:"long",year:"numeric"}).format(new Date(v+"T12:00:00"))}
+function fmtShort(v){if(!v)return"—";return new Intl.DateTimeFormat("es-MX",{day:"2-digit",month:"short",year:"numeric"}).format(new Date(v+"T12:00:00")).toUpperCase()}
+function fmtDateTime(v){return new Intl.DateTimeFormat("es-MX",{dateStyle:"long",timeStyle:"short"}).format(new Date(v))}
+function fmtTime(v){if(!v)return"—";const [h,m]=v.split(":");const d=new Date(2000,0,1,Number(h),Number(m));return new Intl.DateTimeFormat("es-MX",{hour:"2-digit",minute:"2-digit"}).format(d)}
+function money(v){return new Intl.NumberFormat("es-MX",{style:"currency",currency:"MXN"}).format(Number(v||0))}
+function diff(a,b){if(!a||!b)return{days:0,nights:0};const x=new Date(a+"T12:00:00"),y=new Date(b+"T12:00:00"),n=Math.max(0,Math.round((y-x)/86400000));return{days:n+1,nights:n}}
+function set(id,val){const el=$(id);if(el)el.textContent=val||"—"}
+function toast(msg){const el=$("#toast");el.textContent=msg;el.classList.add("show");setTimeout(()=>el.classList.remove("show"),2200)}
 
 function render(){
   const v=getVoucher();
-  if(!v){
-    document.body.innerHTML=`<main style="font-family:sans-serif;padding:40px;text-align:center"><h1>Cupón no encontrado</h1><p>Revisa que el enlace sea correcto.</p></main>`;
-    return;
-  }
-
-  const duration=dateDiff(v.startDate,v.endDate);
-  const stay=dateDiff(v.checkIn||v.startDate,v.checkOut||v.endDate);
+  if(!v){document.body.innerHTML='<main style="font-family:sans-serif;padding:40px;text-align:center"><h1>Voucher no encontrado</h1><p>Revisa que el enlace sea correcto.</p></main>';return}
+  const duration=diff(v.startDate,v.endDate),stay=diff(v.checkIn||v.startDate,v.checkOut||v.endDate);
   const balance=Math.max(0,Number(v.totalPrice||0)-Number(v.paymentsMade||0));
-
   document.title=`${v.folio} · ${v.passenger} · Velora Travel`;
-  $("#vFolio").textContent=v.folio;
-  $("#vIssuedAt").textContent=formatDate(v.createdAt.slice(0,10));
-  $("#vPassengerGreeting").textContent=v.passenger;
-  $("#vPassenger").textContent=v.passenger;
-  $("#vPassengerCount").textContent=v.passengerCount||"1";
-  $("#vPhone").textContent=v.phone||"—";
-  $("#vEmail").textContent=v.email||"—";
 
-  $("#vDestination").textContent=v.destination||"—";
-  $("#vStartDate").textContent=formatDate(v.startDate);
-  $("#vEndDate").textContent=formatDate(v.endDate);
-  $("#vDuration").textContent=`${duration.days} días / ${duration.nights} noches`;
-  $("#vTripType").textContent=v.tripType||"—";
-  $("#vGeneralLocator").textContent=v.generalLocator||"—";
+  set("#vFolio",v.folio);set("#vIssuedAt",fmtDate(v.createdAt.slice(0,10)));set("#vPassengerGreeting",v.passenger);set("#vPassenger",v.passenger);set("#vPassengerCount",v.passengerCount||"1");set("#vPhone",v.phone);set("#vEmail",v.email);
+  set("#vDestination",v.destination);set("#vStartDate",fmtDate(v.startDate));set("#vEndDate",fmtDate(v.endDate));set("#vDuration",`${duration.days} días / ${duration.nights} noches`);set("#vTripType",v.tripType);set("#vGeneralLocator",v.generalLocator);
+  set("#vTransportOperator",v.transportOperator||[v.outboundAirline,v.returnAirline].filter(Boolean).join(" / "));
+  set("#vOutboundSummary",[v.outboundAirline,v.outboundFlight].filter(Boolean).join(" · "));set("#vOutboundFlightTime",[fmtDate(v.outboundFlightDate),fmtTime(v.outboundDepartureTime)].filter(x=>x&&x!=="—").join(" · "));set("#vOutboundFlightLocator",v.outboundFlightLocator);
+  set("#vReturnSummary",[v.returnAirline,v.returnFlight].filter(Boolean).join(" · "));set("#vReturnFlightTime",[fmtDate(v.returnFlightDate),fmtTime(v.returnDepartureTime)].filter(x=>x&&x!=="—").join(" · "));set("#vReturnFlightLocator",v.returnFlightLocator);
+  set("#vArrivalTransferLocator",v.arrivalTransferLocator);set("#vDepartureTransferLocator",v.departureTransferLocator);set("#vBaggage",[v.carryOnBaggage,v.checkedBaggage,v.baggage].filter(Boolean).join(" · "));
+  set("#vHotel",v.hotel);set("#vCheckIn",fmtDate(v.checkIn||v.startDate));set("#vCheckOut",fmtDate(v.checkOut||v.endDate));set("#vRoom",v.room);set("#vLodgingPlan",v.lodgingPlan);set("#vNights",stay.nights);set("#vLodgingLocator",v.lodgingLocator);
+  set("#vFoodDetails",v.foodDetails);set("#vToursDetails",v.toursDetails);set("#vIncluded",v.included);
+  const services={serviceFlightsCard:!!v.serviceFlights,serviceLodgingCard:!!v.serviceLodging,serviceTransfersCard:!!v.serviceTransfers,serviceFoodCard:!!v.serviceFood,serviceToursCard:!!v.serviceTours,serviceBaggageCard:!!v.serviceBaggage};
+  Object.entries(services).forEach(([key,on])=>$("#"+key)?.classList.toggle("not-included",!on));
+  set("#vTotalPrice",money(v.totalPrice));set("#vDeposit",money(v.deposit));set("#vPaymentsMade",money(v.paymentsMade));set("#vBalance",money(balance));set("#vPaymentDeadline",fmtDate(v.paymentDeadline));set("#vNotes",v.notes||"Sin observaciones adicionales.");
+  set("#vAdvisor",v.advisor||"Velora Travel");set("#vAdvisorWhatsapp",v.advisorWhatsapp||"55 1900 0905");set("#vAdvisorEmail",v.advisorEmail||"hola@veloratravel.com");set("#vAdvisorInstagram",v.advisorInstagram||"@veloratravel");
 
-  $("#vAirline").textContent=v.airline||"—";
-  $("#vOutboundFlight").textContent=v.outboundFlight||"—";
-  $("#vOutboundFlightTime").textContent=[formatDate(v.outboundFlightDate), v.outboundFlightTime].filter(x=>x && x!=="—").join(" · ")||"—";
-  $("#vOutboundFlightLocator").textContent=v.outboundFlightLocator||"—";
-  $("#vReturnFlight").textContent=v.returnFlight||"—";
-  $("#vReturnFlightTime").textContent=[formatDate(v.returnFlightDate), v.returnFlightTime].filter(x=>x && x!=="—").join(" · ")||"—";
-  $("#vReturnFlightLocator").textContent=v.returnFlightLocator||"—";
-  $("#vArrivalTransferLocator").textContent=v.arrivalTransferLocator||"—";
-  $("#vDepartureTransferLocator").textContent=v.departureTransferLocator||"—";
-  $("#vBaggage").textContent=v.baggage||"—";
+  // Flight ticket
+  set("#tOutAirline",v.outboundAirline);set("#tOutFlight",v.outboundFlight);set("#tOutDate",fmtShort(v.outboundFlightDate));set("#tOutOriginCode",v.outboundOriginCode);set("#tOutOriginCity",v.outboundOriginCity);set("#tOutDestCode",v.outboundDestinationCode);set("#tOutDestCity",v.outboundDestinationCity);set("#tOutDeparture",fmtTime(v.outboundDepartureTime));set("#tOutDepTerminal",v.outboundDepartureTerminal);set("#tOutArrival",fmtTime(v.outboundArrivalTime));set("#tOutArrTerminal",v.outboundArrivalTerminal);
+  set("#tReturnAirline",v.returnAirline);set("#tReturnFlight",v.returnFlight);set("#tReturnDate",fmtShort(v.returnFlightDate));set("#tReturnOriginCode",v.returnOriginCode);set("#tReturnOriginCity",v.returnOriginCity);set("#tReturnDestCode",v.returnDestinationCode);set("#tReturnDestCity",v.returnDestinationCity);set("#tReturnDeparture",fmtTime(v.returnDepartureTime));set("#tReturnDepTerminal",v.returnDepartureTerminal);set("#tReturnArrival",fmtTime(v.returnArrivalTime));set("#tReturnArrTerminal",v.returnArrivalTerminal);
+  set("#tCarryOn",v.carryOnBaggage);set("#tChecked",v.checkedBaggage);set("#tOutLocator",v.outboundFlightLocator);set("#tReturnLocator",v.returnFlightLocator);set("#tStubAirline",v.outboundAirline||v.returnAirline||"AEROLÍNEA");set("#tPassenger",v.passenger);set("#tRouteOrigin",v.outboundOriginCode);set("#tRouteDest",v.outboundDestinationCode);set("#tIssueDate",fmtShort(v.createdAt.slice(0,10)));set("#tDocCode",v.folio);
 
-  $("#vHotel").textContent=v.hotel||"—";
-  $("#vCheckIn").textContent=formatDate(v.checkIn||v.startDate);
-  $("#vCheckOut").textContent=formatDate(v.checkOut||v.endDate);
-  $("#vRoom").textContent=v.room||"—";
-  $("#vLodgingPlan").textContent=v.lodgingPlan||"—";
-  $("#vNights").textContent=stay.nights;
-  $("#vLodgingLocator").textContent=v.lodgingLocator||"—";
-
-  $("#vFoodDetails").textContent=v.foodDetails||"—";
-  $("#vToursDetails").textContent=v.toursDetails||"—";
-  $("#vIncluded").textContent=v.included||"—";
-
-  const services = {
-    serviceFlightsCard: !!v.serviceFlights,
-    serviceLodgingCard: !!v.serviceLodging,
-    serviceTransfersCard: !!v.serviceTransfers,
-    serviceFoodCard: !!v.serviceFood,
-    serviceToursCard: !!v.serviceTours,
-    serviceBaggageCard: !!v.serviceBaggage
-  };
-  Object.entries(services).forEach(([id,on])=>$("#"+id)?.classList.toggle("not-included",!on));
-  $("#vTotalPrice").textContent=money(v.totalPrice);
-  $("#vDeposit").textContent=money(v.deposit);
-  $("#vPaymentsMade").textContent=money(v.paymentsMade);
-  $("#vBalance").textContent=money(balance);
-  $("#vPaymentDeadline").textContent=formatDate(v.paymentDeadline);
-  $("#vNotes").textContent=v.notes||"Sin observaciones adicionales.";
-  $("#vAdvisor").textContent=v.advisor||"Velora Travel";
-  $("#vAdvisorWhatsapp").textContent=v.advisorWhatsapp||"55 1900 0905";
-  $("#vAdvisorEmail").textContent=v.advisorEmail||"hola@veloratravel.com";
-  $("#vAdvisorInstagram").textContent=v.advisorInstagram||"@veloratravel";
-  $("#vAcceptance").textContent=v.acceptance||"Confirmo que he revisado los datos de mi viaje y que la información mostrada es correcta.";
-  $("#signerName").value=v.passenger;
-
-  if(v.signedAt){
-    $("#signatureSection").style.display="none";
-    $("#signedProof").classList.add("show");
-    $("#proofName").textContent=v.signerName||v.passenger;
-    $("#proofDate").textContent=formatDateTime(v.signedAt);
-    $("#proofSignature").src=v.signature;
-  }else{
-    markViewed(v);
-  }
+  set("#vAcceptance",v.acceptance||"Confirmo que he revisado los datos de mi viaje y acepto las condiciones aplicables.");
+  $("#signerName").value=v.passenger||"";
+  if(v.signedAt){$("#signatureSection").style.display="none";$("#signedProof").classList.add("show");set("#proofName",v.signerName||v.passenger);set("#proofDate",fmtDateTime(v.signedAt));$("#proofSignature").src=v.signature}else markViewed(v);
 }
-function markViewed(v){
-  if(v.viewedAt) return;
-  const items=vouchers();
-  const item=items.find(x=>x.id===v.id);
-  if(item){ item.viewedAt=new Date().toISOString(); save(items); }
-}
+function markViewed(v){if(v.viewedAt)return;const items=getAll(),item=items.find(x=>x.id===v.id);if(item){item.viewedAt=new Date().toISOString();save(items)}}
 
-const canvas=$("#signaturePad");
-let ctx, drawing=false, hasInk=false, last=null;
-function resizeCanvas(){
-  if(!canvas) return;
-  const rect=canvas.getBoundingClientRect();
-  const ratio=Math.max(window.devicePixelRatio||1,1);
-  const snapshot=hasInk ? canvas.toDataURL() : null;
-  canvas.width=rect.width*ratio;
-  canvas.height=190*ratio;
-  ctx=canvas.getContext("2d");
-  ctx.scale(ratio,ratio);
-  ctx.lineWidth=2.2;
-  ctx.lineCap="round";
-  ctx.lineJoin="round";
-  ctx.strokeStyle="#292225";
-  if(snapshot){
-    const img=new Image();
-    img.onload=()=>ctx.drawImage(img,0,0,rect.width,190);
-    img.src=snapshot;
-  }
-}
-function point(e){
-  const r=canvas.getBoundingClientRect();
-  const p=e.touches?e.touches[0]:e;
-  return {x:p.clientX-r.left,y:p.clientY-r.top};
-}
-function start(e){ if(getVoucher()?.signedAt) return; drawing=true;hasInk=true;last=point(e);e.preventDefault(); }
-function move(e){ if(!drawing)return;const p=point(e);ctx.beginPath();ctx.moveTo(last.x,last.y);ctx.lineTo(p.x,p.y);ctx.stroke();last=p;e.preventDefault(); }
+const canvas=$("#signaturePad");let ctx,drawing=false,hasInk=false,last=null;
+function resizeCanvas(){if(!canvas)return;const rect=canvas.getBoundingClientRect(),ratio=Math.max(devicePixelRatio||1,1),snapshot=hasInk?canvas.toDataURL():null;canvas.width=rect.width*ratio;canvas.height=190*ratio;ctx=canvas.getContext("2d");ctx.scale(ratio,ratio);ctx.lineWidth=2.2;ctx.lineCap="round";ctx.lineJoin="round";ctx.strokeStyle="#292225";if(snapshot){const img=new Image();img.onload=()=>ctx.drawImage(img,0,0,rect.width,190);img.src=snapshot}}
+function point(e){const r=canvas.getBoundingClientRect(),p=e.touches?e.touches[0]:e;return{x:p.clientX-r.left,y:p.clientY-r.top}}
+function start(e){if(getVoucher()?.signedAt)return;drawing=true;hasInk=true;last=point(e);e.preventDefault()}
+function move(e){if(!drawing)return;const p=point(e);ctx.beginPath();ctx.moveTo(last.x,last.y);ctx.lineTo(p.x,p.y);ctx.stroke();last=p;e.preventDefault()}
 function end(){drawing=false;last=null}
-
-canvas.addEventListener("pointerdown",start);
-canvas.addEventListener("pointermove",move);
-["pointerup","pointerleave","pointercancel"].forEach(ev=>canvas.addEventListener(ev,end));
-canvas.addEventListener("touchstart",start,{passive:false});
-canvas.addEventListener("touchmove",move,{passive:false});
-canvas.addEventListener("touchend",end);
-
-$("#clearSignature").addEventListener("click",()=>{ctx.clearRect(0,0,canvas.width,canvas.height);hasInk=false;});
-$("#signButton").addEventListener("click",()=>{
-  const v=getVoucher(); if(!v||v.signedAt)return;
-  const name=$("#signerName").value.trim();
-  if(!$("#acceptCheck").checked){toast("Marca la casilla de aceptación");return}
-  if(name.length<3){toast("Escribe el nombre de quien firma");return}
-  if(!hasInk){toast("Falta la firma");return}
-
-  const items=vouchers();
-  const item=items.find(x=>x.id===id);
-  item.signerName=name;
-  item.signature=canvas.toDataURL("image/png");
-  item.signedAt=new Date().toISOString();
-  save(items);
-  toast("Cupón firmado correctamente");
-  setTimeout(()=>render(),450);
-});
-
-window.addEventListener("resize",resizeCanvas);
-render();
-setTimeout(resizeCanvas,50);
+canvas.addEventListener("pointerdown",start);canvas.addEventListener("pointermove",move);["pointerup","pointerleave","pointercancel"].forEach(x=>canvas.addEventListener(x,end));canvas.addEventListener("touchstart",start,{passive:false});canvas.addEventListener("touchmove",move,{passive:false});canvas.addEventListener("touchend",end);
+$("#clearSignature").addEventListener("click",()=>{ctx.clearRect(0,0,canvas.width,canvas.height);hasInk=false});
+$("#signButton").addEventListener("click",()=>{const v=getVoucher();if(!v||v.signedAt)return;const name=$("#signerName").value.trim();if(!$("#acceptCheck").checked){toast("Debes aceptar la información y las políticas");return}if(name.length<3){toast("Escribe el nombre de quien firma");return}if(!hasInk){toast("Falta la firma");return}const items=getAll(),item=items.find(x=>x.id===id);item.signerName=name;item.signature=canvas.toDataURL("image/png");item.signedAt=new Date().toISOString();save(items);toast("Voucher firmado correctamente");setTimeout(()=>render(),350)});
+window.addEventListener("resize",resizeCanvas);render();setTimeout(resizeCanvas,50);
