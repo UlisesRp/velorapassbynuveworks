@@ -69,7 +69,6 @@ async function loadSharedData({silent=false}={}){
   if(refreshInFlight) return;
   refreshInFlight=true;
   try{
-    if(!silent) $("#appShell")?.classList.add("data-loading");
     const [voucherResult, quoteResult] = await Promise.all([
       db.from("vouchers").select("*").order("created_at",{ascending:false}),
       db.from("quotes").select("*").order("created_at",{ascending:false})
@@ -83,7 +82,6 @@ async function loadSharedData({silent=false}={}){
     if(!silent) toast("No se pudieron cargar los datos de Supabase");
     console.error("Supabase load error:",error);
   }finally{
-    $("#appShell")?.classList.remove("data-loading");
     refreshInFlight=false;
   }
 }
@@ -277,6 +275,7 @@ voucherForm.addEventListener("submit",async e=>{
 });
 
 $("#fillVoucherDemo").addEventListener("click",()=>{
+  try{
   const f=voucherForm;
   const start=new Date(Date.now()+9*86400000);
   const last=new Date(start.getFullYear(),start.getMonth()+1,0).getDate();
@@ -292,6 +291,7 @@ $("#fillVoucherDemo").addEventListener("click",()=>{
   f.foodDetails.value="Plan todo incluido";f.toursDetails.value="Sin tours incluidos";f.included.value="Asistencia Velora durante el viaje";
   f.notes.value="Presentarse en el aeropuerto con anticipación suficiente.";f.advisor.value="Velora Travel";
   updateDuration(f);updateVoucherComputed();toast("Ejemplo completo cargado");
+  }catch(error){console.error("Error llenando ejemplo de voucher:",error);toast("No se pudo llenar el ejemplo");}
 });
 
 // Cotizaciones
@@ -349,10 +349,12 @@ quoteForm.addEventListener("submit",async e=>{
 });
 
 $("#fillQuoteDemo").addEventListener("click",()=>{
+  try{
   const f=quoteForm;const start=new Date(Date.now()+14*86400000);const last=new Date(start.getFullYear(),start.getMonth()+1,0).getDate();const end=new Date(start.getFullYear(),start.getMonth(),Math.min(start.getDate()+4,last));const iso=d=>d.toISOString().slice(0,10);
   f.client.value="Mariana González Ruiz";f.phone.value="55 1234 5678";f.email.value="mariana@ejemplo.com";f.travelerCount.value=2;f.tripType.value="Vacaciones";f.title.value="Cancún · Todo Incluido";f.destination.value="Cancún, Quintana Roo";f.startDate.value=iso(start);constrainSameMonth(f);f.endDate.value=iso(end);f.validUntil.value=iso(new Date(Date.now()+3*86400000));
   $("#quoteItems").innerHTML="";addQuoteItem({category:"Vuelos",concept:"Vuelos redondos",description:"CDMX – Cancún – CDMX",amount:6800});addQuoteItem({category:"Hospedaje",concept:"Hotel 4 noches",description:"Junior Suite · Todo incluido",amount:17800});addQuoteItem({category:"Traslados",concept:"Traslados aeropuerto",description:"Llegada y salida",amount:2400});
   f.deposit.value=8000;f.paymentDeadline.value=iso(new Date(Date.now()+8*86400000));f.includes.value="Vuelos redondos\n4 noches de hospedaje\nPlan todo incluido\nTraslados aeropuerto-hotel-aeropuerto";f.excludes.value="Gastos personales\nPropinas\nServicios no indicados";f.notes.value="Tarifa sujeta a disponibilidad al momento de reservar.";f.advisor.value="Velora Travel";updateDuration(f);updateQuoteTotal();toast("Ejemplo de cotización cargado");
+  }catch(error){console.error("Error llenando ejemplo de cotización:",error);toast("No se pudo llenar el ejemplo");}
 });
 
 window.convertQuoteToVoucher=id=>{

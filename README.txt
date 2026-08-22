@@ -71,3 +71,10 @@ V1.9
 
 IMPORTANTE
 Conserva tu supabase-client.js real en la carpeta del proyecto. Esta entrega no lo incluye.
+
+
+V1.9.1 FIX
+- Se eliminó el bloqueo global de interacción durante los refrescos de Supabase.
+- Los refrescos automáticos continúan, pero ya no deshabilitan botones ni formularios.
+- "Llenar ejemplo" de voucher y cotización tiene protección de error para evitar fallos silenciosos.
+- No se modificó el diseño, Supabase, login, vouchers, cotizaciones ni enlaces.
