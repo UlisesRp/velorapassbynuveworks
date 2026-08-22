@@ -620,3 +620,43 @@ body.auth-ready .shell{visibility:visible;opacity:1;transition:opacity .22s ease
   pointer-events:auto !important;
   opacity:1 !important;
 }
+
+
+/* ===================== V1.9.2 · AUTOR DE REGISTROS ===================== */
+.creator-badge{
+  display:inline-flex;
+  align-items:center;
+  max-width:150px;
+  padding:5px 9px;
+  border-radius:999px;
+  background:#f3e8ec;
+  color:#7b4658;
+  font-size:11px;
+  font-weight:800;
+  line-height:1;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  vertical-align:middle;
+}
+.creator-badge.unknown{
+  background:#f1efed;
+  color:#8a8184;
+}
+.record-creator{
+  display:flex !important;
+  align-items:center;
+  gap:6px;
+  flex-wrap:wrap;
+  margin-top:8px !important;
+  font-size:10px !important;
+  color:#8a8184 !important;
+}
+.record-creator .creator-badge{
+  max-width:135px;
+  font-size:10px;
+  padding:4px 7px;
+}
+@media(max-width:900px){
+  .creator-badge{max-width:110px}
+}

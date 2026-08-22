@@ -78,3 +78,11 @@ V1.9.1 FIX
 - Los refrescos automáticos continúan, pero ya no deshabilitan botones ni formularios.
 - "Llenar ejemplo" de voucher y cotización tiene protección de error para evitar fallos silenciosos.
 - No se modificó el diseño, Supabase, login, vouchers, cotizaciones ni enlaces.
+
+
+V1.9.2 · AUTOR DE REGISTROS
+- Inicio muestra quién creó cada voucher y cada cotización.
+- El dato se obtiene del usuario autenticado de Supabase.
+- La auditoría se guarda en una tabla privada separada; NO se envía al cliente en el voucher/cotización pública.
+- Ejecutar SUPABASE_V1.9.2_AUDITORIA.sql una vez en Supabase > SQL Editor.
+- Registros anteriores a esta versión aparecen como "Sin registro", porque no existe información fiable para atribuirlos retroactivamente.

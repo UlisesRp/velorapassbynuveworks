@@ -37,6 +37,13 @@ function friendlyDbError(error){
   return error?.message || "Ocurrió un error al guardar la información.";
 }
 
+function creatorBadge(record){
+  const email=record?.createdByEmail;
+  if(!email) return `<span class="creator-badge unknown">Sin registro</span>`;
+  const short=email.split("@")[0] || email;
+  return `<span class="creator-badge" title="${escapeHtml(email)}">${escapeHtml(short)}</span>`;
+}
+
 function normalizeVoucher(row){
   return {
     id: row.id,
@@ -69,14 +76,32 @@ async function loadSharedData({silent=false}={}){
   if(refreshInFlight) return;
   refreshInFlight=true;
   try{
-    const [voucherResult, quoteResult] = await Promise.all([
+    const [voucherResult, quoteResult, auditResult] = await Promise.all([
       db.from("vouchers").select("*").order("created_at",{ascending:false}),
-      db.from("quotes").select("*").order("created_at",{ascending:false})
+      db.from("quotes").select("*").order("created_at",{ascending:false}),
+      db.from("record_audit").select("record_type,record_id,created_by_email,created_at")
     ]);
     if(voucherResult.error) throw voucherResult.error;
     if(quoteResult.error) throw quoteResult.error;
-    voucherCache=(voucherResult.data||[]).map(normalizeVoucher);
-    quoteCache=(quoteResult.data||[]).map(normalizeQuote);
+
+    // Si todavía no se ejecutó la migración de auditoría, el programa sigue funcionando.
+    if(auditResult.error) console.warn("Auditoría de creadores aún no disponible:",auditResult.error);
+
+    const auditMap=new Map(
+      (auditResult.data||[]).map(row=>[
+        `${row.record_type}:${row.record_id}`,
+        row.created_by_email || null
+      ])
+    );
+
+    voucherCache=(voucherResult.data||[]).map(row=>({
+      ...normalizeVoucher(row),
+      createdByEmail:auditMap.get(`voucher:${row.id}`) || null
+    }));
+    quoteCache=(quoteResult.data||[]).map(row=>({
+      ...normalizeQuote(row),
+      createdByEmail:auditMap.get(`quote:${row.id}`) || null
+    }));
     renderFromCache();
   }catch(error){
     if(!silent) toast("No se pudieron cargar los datos de Supabase");
@@ -181,12 +206,13 @@ function voucherStatus(v){
 }
 function voucherRow(v,compact=false){
   const actions=`<div class="row-actions"><button class="icon-btn" title="Copiar enlace" onclick="copyVoucherLink('${v.id}')">⧉</button><button class="icon-btn" title="Abrir" onclick="openVoucher('${v.id}')">↗</button><button class="icon-btn delete-btn" title="Eliminar" onclick="deleteVoucher('${v.id}')">⌫</button></div>`;
-  if(compact) return `<tr><td><strong>${escapeHtml(v.folio)}</strong></td><td>${escapeHtml(v.passenger)}</td><td>${escapeHtml(v.destination)}</td><td>${voucherStatus(v)}</td><td>${actions}</td></tr>`;
+  if(compact) return `<tr><td><strong>${escapeHtml(v.folio)}</strong></td><td>${escapeHtml(v.passenger)}</td><td>${escapeHtml(v.destination)}</td><td>${creatorBadge(v)}</td><td>${voucherStatus(v)}</td><td>${actions}</td></tr>`;
   return `<tr><td><strong>${escapeHtml(v.folio)}</strong></td><td>${escapeHtml(v.passenger)}</td><td>${escapeHtml(v.destination)}</td><td>${formatDate(v.createdAt?.slice(0,10))}</td><td>${voucherStatus(v)}</td><td>${v.signedAt?shortDateTime(v.signedAt):"—"}</td><td>${actions}</td></tr>`;
 }
 function quoteCard(q,compact=false){
   const actions=`<div class="row-actions"><button class="icon-btn" title="Copiar enlace" onclick="copyQuoteLink('${q.id}')">⧉</button><button class="icon-btn" title="Abrir" onclick="openQuote('${q.id}')">↗</button>${compact?"":`<button class="icon-btn convert-btn" title="Pasar datos a voucher" onclick="convertQuoteToVoucher('${q.id}')">→ Voucher</button>`}<button class="icon-btn delete-btn" title="Eliminar" onclick="deleteQuote('${q.id}')">⌫</button></div>`;
-  return `<article class="quote-list-card"><div><span class="quote-folio">${escapeHtml(q.folio)}</span><h3>${escapeHtml(q.client)}</h3><p>${escapeHtml(q.destination)} · ${formatDate(q.startDate)}</p></div><div class="quote-list-total"><small>Total</small><strong>${money(q.total)}</strong>${actions}</div></article>`;
+  const creatorLine=compact?`<p class="record-creator">Creado por ${creatorBadge(q)}</p>`:"";
+  return `<article class="quote-list-card"><div><span class="quote-folio">${escapeHtml(q.folio)}</span><h3>${escapeHtml(q.client)}</h3><p>${escapeHtml(q.destination)} · ${formatDate(q.startDate)}</p>${creatorLine}</div><div class="quote-list-total"><small>Total</small><strong>${money(q.total)}</strong>${actions}</div></article>`;
 }
 
 function renderFromCache(){
