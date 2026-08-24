@@ -86,3 +86,10 @@ V1.9.2 · AUTOR DE REGISTROS
 - La auditoría se guarda en una tabla privada separada; NO se envía al cliente en el voucher/cotización pública.
 - Ejecutar SUPABASE_V1.9.2_AUDITORIA.sql una vez en Supabase > SQL Editor.
 - Registros anteriores a esta versión aparecen como "Sin registro", porque no existe información fiable para atribuirlos retroactivamente.
+
+
+V1.9.3 · CORREO CON N/A
+- El correo del cliente acepta un email válido o el valor literal N/A.
+- Aplica tanto en Voucher como en Cotización.
+- Tours / Experiencias conserva el indicador visual atenuado cuando no está marcado como incluido.
+- No se modificaron otras funciones.

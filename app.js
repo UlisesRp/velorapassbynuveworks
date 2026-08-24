@@ -111,6 +111,25 @@ async function loadSharedData({silent=false}={}){
   }
 }
 
+
+function isValidEmailOrNA(value){
+  const clean=String(value||"").trim();
+  if(clean.toUpperCase()==="N/A") return true;
+  return /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(clean);
+}
+
+function validateEmailOrNAField(input){
+  if(!input) return true;
+  const ok=isValidEmailOrNA(input.value);
+  input.setCustomValidity(ok ? "" : 'Escribe un correo válido o "N/A".');
+  return ok;
+}
+
+$$('[data-email-or-na]').forEach(input=>{
+  input.addEventListener('input',()=>validateEmailOrNAField(input));
+  input.addEventListener('blur',()=>validateEmailOrNAField(input));
+});
+
 const viewTitles={
   dashboard:"Panel general",
   newQuote:"Nueva cotización",
@@ -285,6 +304,7 @@ voucherForm.endDate.addEventListener("change",()=>{
 
 voucherForm.addEventListener("submit",async e=>{
   e.preventDefault();
+  if(!validateEmailOrNAField(voucherForm.email)){voucherForm.email.reportValidity();return;}
   const submit=voucherForm.querySelector('button[type="submit"]');
   submit.disabled=true; submit.textContent="Guardando…";
   try{
@@ -356,6 +376,7 @@ addQuoteItem();
 
 quoteForm.addEventListener("submit",async e=>{
   e.preventDefault();
+  if(!validateEmailOrNAField(quoteForm.email)){quoteForm.email.reportValidity();return;}
   const items=getQuoteItems();
   if(!items.length){toast("Agrega al menos un concepto");return}
   const submit=quoteForm.querySelector('button[type="submit"]');
