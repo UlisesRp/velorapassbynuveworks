@@ -678,3 +678,106 @@ body.auth-ready .shell{visibility:visible;opacity:1;transition:opacity .22s ease
 .profile-error.show{display:block}
 .profile-actions{display:flex;justify-content:flex-end;gap:9px;padding-top:6px}
 @media(max-width:760px){.profile-modal{padding:23px 18px;border-radius:19px}.profile-actions{display:grid;grid-template-columns:1fr 1fr}}
+
+
+/* ===================== V1.9.5 · MSI + TOTAL PÚBLICO ===================== */
+.quote-internal-pricing{
+  display:grid;
+  grid-template-columns:1fr 1.35fr;
+  gap:12px;
+  align-items:end;
+  margin-top:14px;
+}
+.internal-price-card{
+  min-height:82px;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  padding:14px 16px;
+  border:1px solid var(--line);
+  border-radius:14px;
+  background:#fbf8f6;
+}
+.internal-price-card span{
+  color:var(--muted);
+  font-size:11px;
+  font-weight:700;
+}
+.internal-price-card strong{
+  margin-top:5px;
+  font:700 21px "Playfair Display",serif;
+}
+.msi-field{
+  padding:12px 14px;
+  border:1px solid #e4d7db;
+  border-radius:14px;
+  background:#fffafd;
+}
+.internal-msi-badge{
+  display:inline-flex;
+  margin-top:7px;
+  padding:4px 8px;
+  border-radius:999px;
+  background:#f5ead1;
+  color:#7c6224;
+  font-size:10px;
+  font-weight:800;
+}
+
+.public-services-section .quote-items-table{
+  background:#fff;
+}
+.public-items-head{
+  grid-template-columns:1fr 1.6fr !important;
+}
+.quote-public-row.public-no-price{
+  grid-template-columns:1fr 1.6fr !important;
+}
+.public-total-card{
+  margin-top:22px;
+  padding:24px 26px;
+  background:#084a3d;
+  color:#fff;
+  text-align:right;
+  border-bottom:4px solid #b28e36;
+}
+.public-total-card small{
+  display:block;
+  color:#d8bd6a;
+  font-size:10px;
+  font-weight:800;
+  letter-spacing:.14em;
+}
+.public-total-card strong{
+  display:block;
+  margin:4px 0;
+  font:700 36px "Playfair Display",serif;
+}
+.public-total-card span{
+  font-size:11px;
+  color:#ddd7ce;
+}
+.quote-two-info-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+  margin-top:18px;
+}
+
+@media(max-width:760px){
+  .quote-internal-pricing{
+    grid-template-columns:1fr;
+  }
+  .public-items-head{
+    display:none;
+  }
+  .quote-public-row.public-no-price{
+    grid-template-columns:1fr !important;
+  }
+  .public-total-card{
+    text-align:left;
+  }
+  .quote-two-info-grid{
+    grid-template-columns:1fr;
+  }
+}

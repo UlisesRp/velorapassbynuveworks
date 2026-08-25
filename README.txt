@@ -103,3 +103,16 @@ V1.9.4 · EDITAR USUARIO
 - Creado por usa el nombre editable.
 - Ejecutar SUPABASE_V1.9.4_PERFILES.sql una vez en Supabase.
 - La migración no borra registros.
+
+
+V1.9.5 · COTIZACIÓN SIN DESGLOSE + MSI
+- El agente sigue capturando conceptos y costos internos.
+- La cotización pública ya NO muestra importes por concepto.
+- El cliente ve únicamente el COSTO TOTAL FINAL.
+- Se eliminó el anticipo del documento público para no mostrar otro importe.
+- Nuevo campo opcional: Extra por meses sin intereses.
+- Si MSI queda vacío, la cotización se guarda normalmente y se suma $0.
+- Si el agente captura un monto MSI, se suma al total final.
+- El monto MSI NO se muestra separado al cliente.
+- Supabase usa get_public_quote_by_token() para no exponer los importes internos ni siquiera en la respuesta de red.
+- Ejecutar SUPABASE_V1.9.5_COTIZACION_PUBLICA.sql una vez en Supabase.

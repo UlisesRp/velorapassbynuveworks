@@ -174,13 +174,28 @@
               <div class="section-title-row">
                 <div>
                   <p class="eyebrow">SERVICIOS Y PRECIOS</p>
-                  <p class="section-copy">Agrega cada concepto que quieras mostrar al cliente.</p>
+                  <p class="section-copy">Captura aquí los costos internos. El cliente verá los servicios incluidos, pero nunca el desglose de importes.</p>
                 </div>
                 <button type="button" class="ghost-btn compact-btn" id="addQuoteItem">＋ Agregar concepto</button>
               </div>
+
               <div id="quoteItems" class="quote-items"></div>
+
+              <div class="quote-internal-pricing">
+                <div class="internal-price-card">
+                  <span>Subtotal interno de servicios</span>
+                  <strong id="quoteBaseTotalPreview">$0.00</strong>
+                </div>
+
+                <label class="field msi-field">
+                  <span>Extra por meses sin intereses (opcional)</span>
+                  <input type="number" min="0" step="0.01" name="msiAmount" placeholder="Déjalo vacío si no aplica">
+                  <small class="field-hint">Si capturas un monto, se suma al total final. El cliente no verá este cargo por separado.</small>
+                </label>
+              </div>
+
               <div class="quote-total-preview">
-                <span>Total de la cotización</span>
+                <span>Total final que verá el cliente</span>
                 <strong id="quoteTotalPreview">$0.00</strong>
               </div>
             </div>

@@ -232,9 +232,11 @@ function voucherRow(v,compact=false){
   return `<tr><td><strong>${escapeHtml(v.folio)}</strong></td><td>${escapeHtml(v.passenger)}</td><td>${escapeHtml(v.destination)}</td><td>${formatDate(v.createdAt?.slice(0,10))}</td><td>${voucherStatus(v)}</td><td>${v.signedAt?shortDateTime(v.signedAt):"—"}</td><td>${actions}</td></tr>`;
 }
 function quoteCard(q,compact=false){
-  const actions=`<div class="row-actions"><button class="icon-btn" title="Copiar enlace" onclick="copyQuoteLink('${q.id}')">⧉</button><button class="icon-btn" title="Abrir" onclick="openQuote('${q.id}')">↗</button>${compact?"":`<button class="icon-btn convert-btn" title="Pasar datos a voucher" onclick="convertQuoteToVoucher('${q.id}')">→ Voucher</button>`}<button class="icon-btn delete-btn" title="Eliminar" onclick="deleteQuote('${q.id}')">⌫</button></div>`;
+  const actions=compact?`<button class="icon-btn" title="Abrir" onclick="openQuote('${q.publicToken}')">↗</button>`:`<div class="row-actions"><button class="icon-btn" title="Copiar enlace" onclick="copyQuoteLink('${q.publicToken}')">⧉</button><button class="icon-btn" title="Abrir" onclick="openQuote('${q.publicToken}')">↗</button><button class="icon-btn convert-btn" title="Pasar datos a voucher" onclick="convertQuoteToVoucher('${q.id}')">→ Voucher</button><button class="icon-btn danger-btn" title="Eliminar cotización" onclick="deleteQuote('${q.id}')">⌫</button></div>`;
   const creatorLine=compact?`<p class="record-creator">Creado por ${creatorBadge(q)}</p>`:"";
-  return `<article class="quote-list-card"><div><span class="quote-folio">${escapeHtml(q.folio)}</span><h3>${escapeHtml(q.client)}</h3><p>${escapeHtml(q.destination)} · ${formatDate(q.startDate)}</p>${creatorLine}</div><div class="quote-list-total"><small>Total</small><strong>${money(q.total)}</strong>${actions}</div></article>`;
+  const msi=Number(q.msiAmount||0);
+  const msiLine=msi>0?`<span class="internal-msi-badge">MSI +${money(msi)}</span>`:"";
+  return `<article class="quote-list-card"><div><span class="quote-folio">${escapeHtml(q.folio)}</span><h3>${escapeHtml(q.client)}</h3><p>${escapeHtml(q.destination)} · ${formatDate(q.startDate)}</p>${creatorLine}${msiLine}</div><div class="quote-list-total"><small>Total final</small><strong>${money(q.total)}</strong>${actions}</div></article>`;
 }
 
 function renderFromCache(){
@@ -370,11 +372,17 @@ function getQuoteItems(){
   })).filter(x=>x.concept||x.description||x.amount);
 }
 function updateQuoteTotal(){
-  const total=getQuoteItems().reduce((s,x)=>s+x.amount,0);
-  $("#quoteTotalPreview").textContent=money(total);
-  return total;
+  const baseTotal=getQuoteItems().reduce((s,x)=>s+x.amount,0);
+  const msiAmount=Math.max(0,Number(quoteForm.msiAmount?.value||0));
+  const finalTotal=baseTotal+msiAmount;
+
+  $("#quoteBaseTotalPreview").textContent=money(baseTotal);
+  $("#quoteTotalPreview").textContent=money(finalTotal);
+
+  return {baseTotal,msiAmount,finalTotal};
 }
 $("#addQuoteItem").addEventListener("click",()=>addQuoteItem());
+quoteForm.msiAmount?.addEventListener("input",updateQuoteTotal);
 addQuoteItem();
 
 quoteForm.addEventListener("submit",async e=>{
@@ -388,8 +396,16 @@ quoteForm.addEventListener("submit",async e=>{
     const payload=Object.fromEntries(new FormData(quoteForm).entries());
     delete payload.category;delete payload.concept;delete payload.description;delete payload.amount;delete payload.durationPreview;
     payload.items=items;
-    const total=items.reduce((s,x)=>s+x.amount,0);
-    const {data:row,error}=await db.from("quotes").insert({payload,total,status:"sent"}).select("*").single();
+
+    const pricing=updateQuoteTotal();
+    payload.baseTotal=pricing.baseTotal;
+    payload.msiAmount=pricing.msiAmount;
+
+    const {data:row,error}=await db.from("quotes").insert({
+      payload,
+      total:pricing.finalTotal,
+      status:"sent"
+    }).select("*").single();
     if(error) throw error;
     const quote=normalizeQuote(row);
     showModal("quote",quote.folio,quoteLink(quote.publicToken));
@@ -403,7 +419,7 @@ $("#fillQuoteDemo").addEventListener("click",()=>{
   const f=quoteForm;const start=new Date(Date.now()+14*86400000);const last=new Date(start.getFullYear(),start.getMonth()+1,0).getDate();const end=new Date(start.getFullYear(),start.getMonth(),Math.min(start.getDate()+4,last));const iso=d=>d.toISOString().slice(0,10);
   f.client.value="Mariana González Ruiz";f.phone.value="55 1234 5678";f.email.value="mariana@ejemplo.com";f.travelerCount.value=2;f.tripType.value="Vacaciones";f.title.value="Cancún · Todo Incluido";f.destination.value="Cancún, Quintana Roo";f.startDate.value=iso(start);constrainSameMonth(f);f.endDate.value=iso(end);f.validUntil.value=iso(new Date(Date.now()+3*86400000));
   $("#quoteItems").innerHTML="";addQuoteItem({category:"Vuelos",concept:"Vuelos redondos",description:"CDMX – Cancún – CDMX",amount:6800});addQuoteItem({category:"Hospedaje",concept:"Hotel 4 noches",description:"Junior Suite · Todo incluido",amount:17800});addQuoteItem({category:"Traslados",concept:"Traslados aeropuerto",description:"Llegada y salida",amount:2400});
-  f.deposit.value=8000;f.paymentDeadline.value=iso(new Date(Date.now()+8*86400000));f.includes.value="Vuelos redondos\n4 noches de hospedaje\nPlan todo incluido\nTraslados aeropuerto-hotel-aeropuerto";f.excludes.value="Gastos personales\nPropinas\nServicios no indicados";f.notes.value="Tarifa sujeta a disponibilidad al momento de reservar.";f.advisor.value="Velora Travel";updateDuration(f);updateQuoteTotal();toast("Ejemplo de cotización cargado");
+  f.msiAmount.value="";f.deposit.value=8000;f.paymentDeadline.value=iso(new Date(Date.now()+8*86400000));f.includes.value="Vuelos redondos\n4 noches de hospedaje\nPlan todo incluido\nTraslados aeropuerto-hotel-aeropuerto";f.excludes.value="Gastos personales\nPropinas\nServicios no indicados";f.notes.value="Tarifa sujeta a disponibilidad al momento de reservar.";f.advisor.value="Velora Travel";updateDuration(f);updateQuoteTotal();toast("Ejemplo de cotización cargado");
   }catch(error){console.error("Error llenando ejemplo de cotización:",error);toast("No se pudo llenar el ejemplo");}
 });
 
