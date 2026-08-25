@@ -349,41 +349,165 @@ $("#fillVoucherDemo").addEventListener("click",()=>{
 const quoteForm=$("#quoteForm");
 wireDates(quoteForm);
 let quoteItemCounter=0;
+
+function readQuoteImage(file){
+  return new Promise((resolve,reject)=>{
+    const reader=new FileReader();
+    reader.onload=()=>resolve(reader.result);
+    reader.onerror=()=>reject(new Error("No se pudo leer la imagen"));
+    reader.readAsDataURL(file);
+  });
+}
+
+async function compressQuoteImage(file){
+  if(!file) return "";
+  if(!/^image\/(jpeg|png|webp)$/i.test(file.type)) throw new Error("Usa una imagen JPG, PNG o WEBP");
+  if(file.size>15*1024*1024) throw new Error("La imagen es demasiado pesada. Usa una menor a 15 MB.");
+
+  const source=await readQuoteImage(file);
+  const img=await new Promise((resolve,reject)=>{
+    const image=new Image();
+    image.onload=()=>resolve(image);
+    image.onerror=()=>reject(new Error("No se pudo procesar la imagen"));
+    image.src=source;
+  });
+
+  const maxW=1200,maxH=760;
+  const ratio=Math.min(1,maxW/img.width,maxH/img.height);
+  const width=Math.max(1,Math.round(img.width*ratio));
+  const height=Math.max(1,Math.round(img.height*ratio));
+
+  const canvas=document.createElement("canvas");
+  canvas.width=width;canvas.height=height;
+  const ctx=canvas.getContext("2d");
+  ctx.fillStyle="#ffffff";
+  ctx.fillRect(0,0,width,height);
+  ctx.drawImage(img,0,0,width,height);
+  return canvas.toDataURL("image/jpeg",0.76);
+}
+
 function addQuoteItem(data={}){
   const id=++quoteItemCounter;
   const row=document.createElement("div");
-  row.className="quote-item-row";row.dataset.id=id;
-  row.innerHTML=`<label class="field"><span>Categoría</span><select name="category"><option>Hospedaje</option><option>Vuelos</option><option>Traslados</option><option>Tours / experiencias</option><option>Seguro</option><option>Otro</option></select></label><label class="field"><span>Concepto</span><input name="concept" placeholder="Ej. Hotel 4 noches"></label><label class="field quote-desc"><span>Detalle</span><input name="description" placeholder="Descripción para el cliente"></label><label class="field"><span>Importe</span><input type="number" min="0" step="0.01" name="amount" value="0"></label><button type="button" class="remove-item" title="Eliminar">×</button>`;
+  row.className="quote-item-row";
+  row.dataset.id=id;
+  row._hotelImageData=data.hotelImage||"";
+
+  row.innerHTML=`<label class="field"><span>Categoría</span><select name="category"><option>Hospedaje</option><option>Vuelos</option><option>Traslados</option><option>Tours / experiencias</option><option>Seguro</option><option>Otro</option></select></label><label class="field"><span>Concepto</span><input name="concept" placeholder="Ej. Hotel 4 noches"></label><label class="field quote-desc"><span>Detalle</span><input name="description" placeholder="Descripción para el cliente"></label><label class="field"><span>Importe</span><input type="number" min="0" step="0.01" name="amount" value="0"></label><button type="button" class="remove-item" title="Eliminar">×</button><div class="hotel-image-capture" hidden><div class="hotel-image-upload"><label><span>Imagen del hotel para el cliente</span><input type="file" name="hotelImageFile" accept="image/jpeg,image/png,image/webp"><small>Se comprime automáticamente y se adjunta únicamente a esta cotización.</small></label></div><div class="hotel-image-preview" hidden><img alt="Vista previa del hotel"><button type="button" class="remove-hotel-image">Quitar imagen</button></div></div>`;
+
   $("#quoteItems").appendChild(row);
-  row.querySelector('[name="category"]').value=data.category||"Hospedaje";
+
+  const category=row.querySelector('[name="category"]');
+  const amount=row.querySelector('[name="amount"]');
+  const imageCapture=row.querySelector(".hotel-image-capture");
+  const imageInput=row.querySelector('[name="hotelImageFile"]');
+  const preview=row.querySelector(".hotel-image-preview");
+  const previewImg=preview.querySelector("img");
+  const removeImage=row.querySelector(".remove-hotel-image");
+
+  category.value=data.category||"Hospedaje";
   row.querySelector('[name="concept"]').value=data.concept||"";
   row.querySelector('[name="description"]').value=data.description||"";
-  row.querySelector('[name="amount"]').value=data.amount||0;
-  row.querySelector('[name="amount"]').addEventListener("input",updateQuoteTotal);
-  row.querySelector(".remove-item").addEventListener("click",()=>{row.remove();if(!$("#quoteItems").children.length)addQuoteItem();updateQuoteTotal()});
+  amount.value=data.amount||0;
+
+  function renderHotelImage(){
+    const isHotel=category.value==="Hospedaje";
+    imageCapture.hidden=!isHotel;
+    const hasImage=Boolean(row._hotelImageData);
+    preview.hidden=!hasImage;
+    if(hasImage) previewImg.src=row._hotelImageData;
+    else previewImg.removeAttribute("src");
+  }
+
+  category.addEventListener("change",renderHotelImage);
+  amount.addEventListener("input",updateQuoteTotal);
+
+  imageInput.addEventListener("change",async()=>{
+    const file=imageInput.files?.[0];
+    if(!file) return;
+    imageInput.disabled=true;
+    try{
+      row._hotelImageData=await compressQuoteImage(file);
+      renderHotelImage();
+      toast("Imagen del hotel lista");
+    }catch(error){
+      console.error(error);
+      row._hotelImageData="";
+      imageInput.value="";
+      renderHotelImage();
+      toast(error.message||"No se pudo procesar la imagen");
+    }finally{
+      imageInput.disabled=false;
+    }
+  });
+
+  removeImage.addEventListener("click",()=>{
+    row._hotelImageData="";
+    imageInput.value="";
+    renderHotelImage();
+  });
+
+  row.querySelector(".remove-item").addEventListener("click",()=>{
+    row.remove();
+    if(!$("#quoteItems").children.length)addQuoteItem();
+    updateQuoteTotal();
+  });
+
+  renderHotelImage();
   updateQuoteTotal();
 }
+
 function getQuoteItems(){
-  return [...$("#quoteItems").querySelectorAll(".quote-item-row")].map(row=>({
-    category:row.querySelector('[name="category"]').value,
-    concept:row.querySelector('[name="concept"]').value.trim(),
-    description:row.querySelector('[name="description"]').value.trim(),
-    amount:Number(row.querySelector('[name="amount"]').value||0)
-  })).filter(x=>x.concept||x.description||x.amount);
+  return [...$("#quoteItems").querySelectorAll(".quote-item-row")].map(row=>{
+    const category=row.querySelector('[name="category"]').value;
+    return {
+      category,
+      concept:row.querySelector('[name="concept"]').value.trim(),
+      description:row.querySelector('[name="description"]').value.trim(),
+      amount:Number(row.querySelector('[name="amount"]').value||0),
+      hotelImage:category==="Hospedaje"?(row._hotelImageData||""):""
+    };
+  }).filter(x=>x.concept||x.description||x.amount||x.hotelImage);
 }
+
+function quoteUsesMsi(){
+  return Boolean(quoteForm.msiEnabled?.checked);
+}
+
+function syncQuotePaymentMode(){
+  const enabled=quoteUsesMsi();
+  const msiAmountField=$("#msiAmountField");
+  const deadlineField=$("#paymentDeadlineField");
+  const methodsField=$("#paymentMethodsField");
+
+  msiAmountField.hidden=!enabled;
+  deadlineField.hidden=enabled;
+  methodsField.hidden=enabled;
+
+  quoteForm.msiAmount.disabled=!enabled;
+  quoteForm.paymentDeadline.disabled=enabled;
+  quoteForm.paymentMethods.disabled=enabled;
+  quoteForm.paymentMethods.required=!enabled;
+
+  updateQuoteTotal();
+}
+
 function updateQuoteTotal(){
   const baseTotal=getQuoteItems().reduce((s,x)=>s+x.amount,0);
-  const msiAmount=Math.max(0,Number(quoteForm.msiAmount?.value||0));
+  const msiAmount=quoteUsesMsi()?Math.max(0,Number(quoteForm.msiAmount?.value||0)):0;
   const finalTotal=baseTotal+msiAmount;
 
   $("#quoteBaseTotalPreview").textContent=money(baseTotal);
   $("#quoteTotalPreview").textContent=money(finalTotal);
 
-  return {baseTotal,msiAmount,finalTotal};
+  return {baseTotal,msiAmount,finalTotal,msiEnabled:quoteUsesMsi()};
 }
+
 $("#addQuoteItem").addEventListener("click",()=>addQuoteItem());
+quoteForm.msiEnabled?.addEventListener("change",syncQuotePaymentMode);
 quoteForm.msiAmount?.addEventListener("input",updateQuoteTotal);
 addQuoteItem();
+syncQuotePaymentMode();
 
 quoteForm.addEventListener("submit",async e=>{
   e.preventDefault();
@@ -399,7 +523,10 @@ quoteForm.addEventListener("submit",async e=>{
 
     const pricing=updateQuoteTotal();
     payload.baseTotal=pricing.baseTotal;
+    payload.msiEnabled=pricing.msiEnabled;
     payload.msiAmount=pricing.msiAmount;
+    payload.paymentDeadline=pricing.msiEnabled?"":(quoteForm.paymentDeadline?.value||"");
+    payload.paymentMethods=pricing.msiEnabled?"":(quoteForm.paymentMethods?.value||"").trim();
 
     const {data:row,error}=await db.from("quotes").insert({
       payload,
@@ -419,7 +546,7 @@ $("#fillQuoteDemo").addEventListener("click",()=>{
   const f=quoteForm;const start=new Date(Date.now()+14*86400000);const last=new Date(start.getFullYear(),start.getMonth()+1,0).getDate();const end=new Date(start.getFullYear(),start.getMonth(),Math.min(start.getDate()+4,last));const iso=d=>d.toISOString().slice(0,10);
   f.client.value="Mariana González Ruiz";f.phone.value="55 1234 5678";f.email.value="mariana@ejemplo.com";f.travelerCount.value=2;f.tripType.value="Vacaciones";f.title.value="Cancún · Todo Incluido";f.destination.value="Cancún, Quintana Roo";f.startDate.value=iso(start);constrainSameMonth(f);f.endDate.value=iso(end);f.validUntil.value=iso(new Date(Date.now()+3*86400000));
   $("#quoteItems").innerHTML="";addQuoteItem({category:"Vuelos",concept:"Vuelos redondos",description:"CDMX – Cancún – CDMX",amount:6800});addQuoteItem({category:"Hospedaje",concept:"Hotel 4 noches",description:"Junior Suite · Todo incluido",amount:17800});addQuoteItem({category:"Traslados",concept:"Traslados aeropuerto",description:"Llegada y salida",amount:2400});
-  f.msiAmount.value="";f.deposit.value=8000;f.paymentDeadline.value=iso(new Date(Date.now()+8*86400000));f.includes.value="Vuelos redondos\n4 noches de hospedaje\nPlan todo incluido\nTraslados aeropuerto-hotel-aeropuerto";f.excludes.value="Gastos personales\nPropinas\nServicios no indicados";f.notes.value="Tarifa sujeta a disponibilidad al momento de reservar.";f.advisor.value="Velora Travel";updateDuration(f);updateQuoteTotal();toast("Ejemplo de cotización cargado");
+  f.msiEnabled.checked=false;f.msiAmount.value="";f.deposit.value=8000;f.paymentDeadline.value=iso(new Date(Date.now()+8*86400000));f.paymentMethods.value="Transferencia bancaria\nTarjeta de crédito o débito\nDepósito bancario";f.includes.value="Vuelos redondos\n4 noches de hospedaje\nPlan todo incluido\nTraslados aeropuerto-hotel-aeropuerto";f.excludes.value="Gastos personales\nPropinas\nServicios no indicados";f.notes.value="Tarifa sujeta a disponibilidad al momento de reservar.";f.advisor.value="Velora Travel";syncQuotePaymentMode();updateDuration(f);updateQuoteTotal();toast("Ejemplo de cotización cargado");
   }catch(error){console.error("Error llenando ejemplo de cotización:",error);toast("No se pudo llenar el ejemplo");}
 });
 

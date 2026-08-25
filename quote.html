@@ -46,12 +46,23 @@
       <section class="public-total-card">
         <small>COSTO TOTAL DEL VIAJE</small>
         <strong id="qTotal">—</strong>
-        <span>MXN · Precio final de esta cotización</span>
+        <span id="qTotalCaption">MXN · Precio final de esta cotización</span>
       </section>
 
-      <section class="quote-two-info-grid">
-        <div class="quote-info-box"><small>FECHA LÍMITE DE LIQUIDACIÓN</small><strong id="qDeadline">—</strong></div>
+      <section class="quote-two-info-grid" id="qInfoGrid">
+        <div class="quote-info-box" id="qDeadlineBox"><small>FECHA LÍMITE DE LIQUIDACIÓN</small><strong id="qDeadline">—</strong></div>
         <div class="quote-info-box"><small>TIPO DE VIAJE</small><strong id="qTripType">—</strong></div>
+      </section>
+
+      <section class="quote-payment-methods" id="qPaymentMethodsBox" hidden>
+        <div class="single-section-head">FORMAS DE PAGO</div>
+        <div id="qPaymentMethods">—</div>
+      </section>
+
+      <section class="quote-msi-public" id="qMsiBox" hidden>
+        <small>FORMA DE PAGO</small>
+        <strong>Meses sin intereses</strong>
+        <span>Esta cotización contempla la opción de pago a meses sin intereses.</span>
       </section>
 
       <section class="quote-two-grid">

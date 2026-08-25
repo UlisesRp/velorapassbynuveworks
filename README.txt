@@ -116,3 +116,21 @@ V1.9.5 · COTIZACIÓN SIN DESGLOSE + MSI
 - El monto MSI NO se muestra separado al cliente.
 - Supabase usa get_public_quote_by_token() para no exponer los importes internos ni siquiera en la respuesta de red.
 - Ejecutar SUPABASE_V1.9.5_COTIZACION_PUBLICA.sql una vez en Supabase.
+
+
+V1.9.6 · COTIZACIÓN PÚBLICA
+- Cada concepto con categoría Hospedaje permite adjuntar una imagen del hotel.
+- La imagen se comprime automáticamente antes de guardar la cotización.
+- No existe galería de imágenes: la copia comprimida queda únicamente ligada a esa cotización para que el enlace público pueda mostrarla.
+- Nuevo switch para activar/desactivar Meses sin intereses.
+- MSI desactivado:
+  - el cargo extra MSI vale 0;
+  - se muestran Fecha límite de liquidación y Formas de pago;
+  - Formas de pago es obligatorio para generar la cotización.
+- MSI activado:
+  - aparece el campo opcional de monto extra MSI;
+  - se ocultan y deshabilitan Fecha límite y Formas de pago;
+  - la cotización pública NO muestra fecha límite;
+  - la cotización pública muestra una leyenda de Meses sin intereses.
+- El cliente sigue viendo solamente el costo total final. Nunca recibe importes individuales ni el cargo MSI desglosado.
+- Ejecutar SUPABASE_V1.9.6_COTIZACION_FOTO_MSI.sql una vez en Supabase.

@@ -187,11 +187,24 @@
                   <strong id="quoteBaseTotalPreview">$0.00</strong>
                 </div>
 
-                <label class="field msi-field">
-                  <span>Extra por meses sin intereses (opcional)</span>
-                  <input type="number" min="0" step="0.01" name="msiAmount" placeholder="Déjalo vacío si no aplica">
-                  <small class="field-hint">Si capturas un monto, se suma al total final. El cliente no verá este cargo por separado.</small>
-                </label>
+                <div class="msi-control-card">
+                  <div class="msi-toggle-row">
+                    <div>
+                      <strong>Meses sin intereses</strong>
+                      <small>Actívalo únicamente cuando esta cotización se ofrecerá con MSI.</small>
+                    </div>
+                    <label class="toggle-switch" title="Activar o desactivar meses sin intereses">
+                      <input type="checkbox" name="msiEnabled" id="msiEnabled">
+                      <span class="toggle-slider"></span>
+                    </label>
+                  </div>
+
+                  <label class="field msi-field" id="msiAmountField" hidden>
+                    <span>Monto extra por MSI (opcional)</span>
+                    <input type="number" min="0" step="0.01" name="msiAmount" placeholder="0.00">
+                    <small class="field-hint">Solo si aplica un cargo adicional. Se suma al total final, pero el cliente no lo verá desglosado.</small>
+                  </label>
+                </div>
               </div>
 
               <div class="quote-total-preview">
@@ -204,7 +217,18 @@
               <p class="eyebrow">CONDICIONES DE LA COTIZACIÓN</p>
               <div class="fields-grid">
                 <label class="field"><span>Anticipo para reservar</span><input type="number" min="0" step="0.01" name="deposit" placeholder="0.00"></label>
-                <label class="field"><span>Fecha límite de liquidación</span><input type="date" name="paymentDeadline"></label>
+
+                <label class="field" id="paymentDeadlineField">
+                  <span>Fecha límite de liquidación</span>
+                  <input type="date" name="paymentDeadline">
+                </label>
+
+                <label class="field span-2" id="paymentMethodsField">
+                  <span>Formas de pago *</span>
+                  <textarea required name="paymentMethods" rows="3" placeholder="Captura las formas de pago disponibles para esta cotización."></textarea>
+                  <small class="field-hint">Este texto se mostrará al cliente únicamente cuando MSI esté desactivado.</small>
+                </label>
+
                 <label class="field span-2"><span>Incluye</span><textarea name="includes" rows="4" placeholder="Servicios incluidos, beneficios, equipaje, alimentos..."></textarea></label>
                 <label class="field span-2"><span>No incluye</span><textarea name="excludes" rows="3" placeholder="Gastos personales, propinas, servicios no mencionados..."></textarea></label>
                 <label class="field span-2"><span>Notas / observaciones</span><textarea name="notes" rows="4" placeholder="Información adicional para el cliente"></textarea></label>
