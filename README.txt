@@ -93,3 +93,13 @@ V1.9.3 · CORREO CON N/A
 - Aplica tanto en Voucher como en Cotización.
 - Tours / Experiencias conserva el indicador visual atenuado cuando no está marcado como incluido.
 - No se modificaron otras funciones.
+
+
+V1.9.4 · EDITAR USUARIO
+- Sesión activa muestra nombre + correo.
+- Nuevo botón Editar usuario.
+- Cada usuario puede cambiar su propio nombre para mostrar.
+- El correo de acceso no cambia.
+- Creado por usa el nombre editable.
+- Ejecutar SUPABASE_V1.9.4_PERFILES.sql una vez en Supabase.
+- La migración no borra registros.

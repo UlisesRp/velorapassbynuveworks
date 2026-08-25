@@ -660,3 +660,21 @@ body.auth-ready .shell{visibility:visible;opacity:1;transition:opacity .22s ease
 @media(max-width:900px){
   .creator-badge{max-width:110px}
 }
+
+
+/* ===================== V1.9.4 · EDITAR USUARIO ===================== */
+.sidebar-user-email{display:block;color:#bdb1b5;font-size:9px;line-height:1.35;overflow-wrap:anywhere;margin:-5px 0 10px}
+.edit-user-btn{width:100%;border:1px solid rgba(214,182,91,.28);background:rgba(214,182,91,.08);color:#e6ca78;border-radius:9px;padding:8px 9px;margin-bottom:7px;font-size:10px;font-weight:800}
+.edit-user-btn:hover{background:rgba(214,182,91,.15);color:#ffe39a}
+.profile-modal-backdrop{position:fixed;inset:0;z-index:140;display:none;place-items:center;padding:20px;background:rgba(25,19,21,.68);backdrop-filter:blur(5px)}
+.profile-modal-backdrop.open{display:grid}
+.profile-modal{position:relative;width:min(480px,100%);background:#fffdfb;border-radius:24px;padding:28px;border:1px solid rgba(123,70,88,.12);box-shadow:0 30px 90px rgba(0,0,0,.28)}
+.profile-modal h2{margin:0;font:700 29px "Playfair Display",serif;color:#292225}
+.profile-modal-copy{margin:9px 0 22px;color:#746c70;font-size:13px;line-height:1.55}
+.profile-modal-close{position:absolute;right:15px;top:12px;border:0;background:transparent;color:#8c8286;font-size:27px;line-height:1}
+.profile-form{display:grid;gap:15px}
+.profile-form input[readonly]{background:#f4f0ee;color:#867d80;cursor:not-allowed}
+.profile-error{display:none;margin:0;padding:10px 12px;border-radius:10px;background:#fff0f1;border:1px solid #f1ced2;color:#8a3440;font-size:12px}
+.profile-error.show{display:block}
+.profile-actions{display:flex;justify-content:flex-end;gap:9px;padding-top:6px}
+@media(max-width:760px){.profile-modal{padding:23px 18px;border-radius:19px}.profile-actions{display:grid;grid-template-columns:1fr 1fr}}

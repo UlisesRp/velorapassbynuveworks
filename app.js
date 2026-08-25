@@ -38,10 +38,14 @@ function friendlyDbError(error){
 }
 
 function creatorBadge(record){
-  const email=record?.createdByEmail;
-  if(!email) return `<span class="creator-badge unknown">Sin registro</span>`;
-  const short=email.split("@")[0] || email;
-  return `<span class="creator-badge" title="${escapeHtml(email)}">${escapeHtml(short)}</span>`;
+  const name=String(record?.createdByName||"").trim();
+  const email=String(record?.createdByEmail||"").trim();
+  if(name) return `<span class="creator-badge" title="${escapeHtml(email||name)}">${escapeHtml(name)}</span>`;
+  if(email){
+    const short=email.split("@")[0] || email;
+    return `<span class="creator-badge" title="${escapeHtml(email)}">${escapeHtml(short)}</span>`;
+  }
+  return `<span class="creator-badge unknown">Sin registro</span>`;
 }
 
 function normalizeVoucher(row){
@@ -76,32 +80,31 @@ async function loadSharedData({silent=false}={}){
   if(refreshInFlight) return;
   refreshInFlight=true;
   try{
-    const [voucherResult, quoteResult, auditResult] = await Promise.all([
+    const [voucherResult, quoteResult, auditResult, profilesResult] = await Promise.all([
       db.from("vouchers").select("*").order("created_at",{ascending:false}),
       db.from("quotes").select("*").order("created_at",{ascending:false}),
-      db.from("record_audit").select("record_type,record_id,created_by_email,created_at")
+      db.from("record_audit").select("record_type,record_id,created_by,created_by_email,created_at"),
+      db.from("profiles").select("id,display_name,email")
     ]);
     if(voucherResult.error) throw voucherResult.error;
     if(quoteResult.error) throw quoteResult.error;
 
-    // Si todavía no se ejecutó la migración de auditoría, el programa sigue funcionando.
     if(auditResult.error) console.warn("Auditoría de creadores aún no disponible:",auditResult.error);
+    if(profilesResult.error) console.warn("Perfiles de usuario aún no disponibles:",profilesResult.error);
 
-    const auditMap=new Map(
-      (auditResult.data||[]).map(row=>[
-        `${row.record_type}:${row.record_id}`,
-        row.created_by_email || null
-      ])
-    );
+    const profileMap=new Map((profilesResult.data||[]).map(row=>[row.id,{displayName:row.display_name||null,email:row.email||null}]));
+    const auditMap=new Map((auditResult.data||[]).map(row=>[`${row.record_type}:${row.record_id}`,{userId:row.created_by||null,email:row.created_by_email||null}]));
 
-    voucherCache=(voucherResult.data||[]).map(row=>({
-      ...normalizeVoucher(row),
-      createdByEmail:auditMap.get(`voucher:${row.id}`) || null
-    }));
-    quoteCache=(quoteResult.data||[]).map(row=>({
-      ...normalizeQuote(row),
-      createdByEmail:auditMap.get(`quote:${row.id}`) || null
-    }));
+    voucherCache=(voucherResult.data||[]).map(row=>{
+      const audit=auditMap.get(`voucher:${row.id}`)||{};
+      const profile=audit.userId?profileMap.get(audit.userId):null;
+      return {...normalizeVoucher(row),createdByName:profile?.displayName||null,createdByEmail:profile?.email||audit.email||null};
+    });
+    quoteCache=(quoteResult.data||[]).map(row=>{
+      const audit=auditMap.get(`quote:${row.id}`)||{};
+      const profile=audit.userId?profileMap.get(audit.userId):null;
+      return {...normalizeQuote(row),createdByName:profile?.displayName||null,createdByEmail:profile?.email||audit.email||null};
+    });
     renderFromCache();
   }catch(error){
     if(!silent) toast("No se pudieron cargar los datos de Supabase");
@@ -427,3 +430,5 @@ setInterval(()=>{
 },5000);
 
 initSharedData();
+
+window.addEventListener("velora:user-profile-updated",()=>{ loadSharedData({silent:true}); });

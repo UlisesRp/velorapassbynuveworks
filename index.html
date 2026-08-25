@@ -54,7 +54,9 @@
 
       <div class="sidebar-account" id="sidebarAccount">
         <small>SESIÓN ACTIVA</small>
-        <strong id="authUserEmail">—</strong>
+        <strong id="authUserName">—</strong>
+        <span class="sidebar-user-email" id="authUserEmail">—</span>
+        <button class="edit-user-btn" id="editUserButton" type="button">Editar usuario</button>
         <button class="logout-btn" id="logoutButton" type="button">Cerrar sesión</button>
       </div>
 
@@ -399,6 +401,30 @@
         </div>
       </section>
     </main>
+  </div>
+
+  <div class="profile-modal-backdrop" id="profileModal">
+    <section class="profile-modal" role="dialog" aria-modal="true" aria-labelledby="profileModalTitle">
+      <button class="profile-modal-close" id="profileModalClose" type="button" aria-label="Cerrar">×</button>
+      <p class="eyebrow">USUARIO</p>
+      <h2 id="profileModalTitle">Editar usuario</h2>
+      <p class="profile-modal-copy">Este nombre se mostrará dentro de Velora Pass y en “Creado por”. Tu correo de acceso no cambia.</p>
+      <form id="profileForm" class="profile-form">
+        <label class="field">
+          <span>Nombre para mostrar *</span>
+          <input id="profileDisplayName" name="displayName" required maxlength="60" placeholder="Ej. Ulises Rangel">
+        </label>
+        <label class="field">
+          <span>Correo de acceso</span>
+          <input id="profileEmail" type="email" readonly>
+        </label>
+        <p class="profile-error" id="profileError"></p>
+        <div class="profile-actions">
+          <button class="ghost-btn" id="profileCancel" type="button">Cancelar</button>
+          <button class="primary-btn" id="profileSave" type="submit">Guardar cambios</button>
+        </div>
+      </form>
+    </section>
   </div>
 
   <div class="toast" id="toast"></div>
