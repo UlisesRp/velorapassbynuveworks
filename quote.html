@@ -84,6 +84,25 @@
         <div><small>CORREO</small><strong id="qEmail">—</strong></div>
       </footer>
 
+      <section class="quote-acceptance print-hide" id="qAcceptance">
+        <div id="qAcceptancePending">
+          <div>
+            <small>¿TODO ESTÁ CORRECTO?</small>
+            <strong>Acepta esta cotización para que tu asesor pueda continuar con la reservación.</strong>
+          </div>
+          <button class="primary-btn quote-accept-btn" id="acceptQuoteButton" type="button">Aceptar cotización</button>
+        </div>
+
+        <div class="quote-accepted-public" id="qAcceptanceDone" hidden>
+          <span>✓</span>
+          <div>
+            <small>COTIZACIÓN ACEPTADA</small>
+            <strong>Gracias. Tu asesor ya puede continuar con la reservación.</strong>
+            <p id="qAcceptedAtText"></p>
+          </div>
+        </div>
+      </section>
+
       <div class="quote-actions print-hide"><button class="primary-btn" onclick="window.print()">Imprimir / guardar PDF</button></div>
     </article>
   </main>

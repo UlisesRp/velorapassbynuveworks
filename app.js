@@ -72,6 +72,8 @@ function normalizeQuote(row){
     status: row.status,
     createdAt: row.created_at,
     viewedAt: row.viewed_at,
+    acceptedAt: row.accepted_at,
+    acceptedByName: row.accepted_by_name,
     convertedVoucherId: row.converted_voucher_id
   };
 }
@@ -231,12 +233,55 @@ function voucherRow(v,compact=false){
   if(compact) return `<tr><td><strong>${escapeHtml(v.folio)}</strong></td><td>${escapeHtml(v.passenger)}</td><td>${escapeHtml(v.destination)}</td><td>${creatorBadge(v)}</td><td>${voucherStatus(v)}</td><td>${actions}</td></tr>`;
   return `<tr><td><strong>${escapeHtml(v.folio)}</strong></td><td>${escapeHtml(v.passenger)}</td><td>${escapeHtml(v.destination)}</td><td>${formatDate(v.createdAt?.slice(0,10))}</td><td>${voucherStatus(v)}</td><td>${v.signedAt?shortDateTime(v.signedAt):"—"}</td><td>${actions}</td></tr>`;
 }
+function quoteStatus(q){
+  if(q.convertedVoucherId || q.status==="converted"){
+    return `<span class="status quote-converted">Reserva creada</span>`;
+  }
+  if(q.acceptedAt || q.status==="accepted"){
+    return `<span class="status quote-accepted">Aceptada</span>`;
+  }
+  if(q.viewedAt || q.status==="viewed"){
+    return `<span class="status viewed">Vista por cliente</span>`;
+  }
+  return `<span class="status pending">Enviada</span>`;
+}
+
 function quoteCard(q,compact=false){
-  const actions=compact?`<button class="icon-btn" title="Abrir" onclick="openQuote('${q.publicToken}')">↗</button>`:`<div class="row-actions"><button class="icon-btn" title="Copiar enlace" onclick="copyQuoteLink('${q.publicToken}')">⧉</button><button class="icon-btn" title="Abrir" onclick="openQuote('${q.publicToken}')">↗</button><button class="icon-btn convert-btn" title="Pasar datos a voucher" onclick="convertQuoteToVoucher('${q.id}')">→ Voucher</button><button class="icon-btn danger-btn" title="Eliminar cotización" onclick="deleteQuote('${q.id}')">⌫</button></div>`;
-  const creatorLine=compact?`<p class="record-creator">Creado por ${creatorBadge(q)}</p>`:"";
+  // IMPORTANTE: las acciones internas trabajan con el ID de la fila, no con el public_token.
+  const openButton=`<button class="icon-btn" title="Abrir cotización" onclick="openQuote('${q.id}')">↗</button>`;
+  const copyButton=`<button class="icon-btn" title="Copiar enlace" onclick="copyQuoteLink('${q.id}')">⧉</button>`;
+
+  let reserveButton="";
+  if(!compact){
+    reserveButton=(q.convertedVoucherId || q.status==="converted")
+      ? `<button class="icon-btn convert-btn converted" type="button" disabled title="Esta cotización ya fue convertida a reserva">Reserva creada</button>`
+      : `<button class="icon-btn convert-btn ${q.acceptedAt||q.status==="accepted"?"accepted-ready":""}" title="Mover datos a reserva" onclick="convertQuoteToVoucher('${q.id}')">→ Reserva</button>`;
+  }
+
+  const actions=compact
+    ? openButton
+    : `<div class="row-actions">${copyButton}${openButton}${reserveButton}<button class="icon-btn danger-btn" title="Eliminar cotización" onclick="deleteQuote('${q.id}')">⌫</button></div>`;
+
+  const creatorLine=`<p class="record-creator">Creado por ${creatorBadge(q)}</p>`;
+  const statusLine=`<div class="quote-status-line">${quoteStatus(q)}${q.acceptedAt?`<span class="quote-accepted-date">${shortDateTime(q.acceptedAt)}</span>`:""}</div>`;
   const msi=Number(q.msiAmount||0);
   const msiLine=msi>0?`<span class="internal-msi-badge">MSI +${money(msi)}</span>`:"";
-  return `<article class="quote-list-card"><div><span class="quote-folio">${escapeHtml(q.folio)}</span><h3>${escapeHtml(q.client)}</h3><p>${escapeHtml(q.destination)} · ${formatDate(q.startDate)}</p>${creatorLine}${msiLine}</div><div class="quote-list-total"><small>Total final</small><strong>${money(q.total)}</strong>${actions}</div></article>`;
+
+  return `<article class="quote-list-card">
+    <div>
+      <span class="quote-folio">${escapeHtml(q.folio)}</span>
+      <h3>${escapeHtml(q.client)}</h3>
+      <p>${escapeHtml(q.destination)} · ${formatDate(q.startDate)}</p>
+      ${creatorLine}
+      ${statusLine}
+      ${msiLine}
+    </div>
+    <div class="quote-list-total">
+      <small>Total final</small>
+      <strong>${money(q.total)}</strong>
+      ${actions}
+    </div>
+  </article>`;
 }
 
 function renderFromCache(){
@@ -290,6 +335,9 @@ function wireDates(form){
   });
 }
 
+let pendingQuoteConversionId=null;
+let pendingQuoteConversionFolio="";
+
 const voucherForm=$("#voucherForm");
 wireDates(voucherForm);
 function updateVoucherComputed(){
@@ -318,7 +366,28 @@ voucherForm.addEventListener("submit",async e=>{
     delete payload.nightsPreview;
     const {data:row,error}=await db.from("vouchers").insert({payload,status:"pending"}).select("*").single();
     if(error) throw error;
+
     const voucher=normalizeVoucher(row);
+
+    if(pendingQuoteConversionId){
+      const sourceQuoteId=pendingQuoteConversionId;
+      const {error:quoteUpdateError}=await db
+        .from("quotes")
+        .update({
+          status:"converted",
+          converted_voucher_id:row.id
+        })
+        .eq("id",sourceQuoteId);
+
+      if(quoteUpdateError){
+        console.error("No se pudo marcar la cotización como convertida:",quoteUpdateError);
+        toast("Reserva creada; no se pudo actualizar el estado de la cotización");
+      }else{
+        pendingQuoteConversionId=null;
+        pendingQuoteConversionFolio="";
+      }
+    }
+
     showModal("voucher",voucher.folio,voucherLink(voucher.publicToken));
     await loadSharedData({silent:true});
   }catch(error){toast(friendlyDbError(error))}
@@ -551,9 +620,42 @@ $("#fillQuoteDemo").addEventListener("click",()=>{
 });
 
 window.convertQuoteToVoucher=id=>{
-  const q=quoteCache.find(x=>x.id===id);if(!q)return;
+  const q=quoteCache.find(x=>x.id===id);
+  if(!q){
+    toast("No se encontró la cotización");
+    return;
+  }
+
+  if(q.convertedVoucherId || q.status==="converted"){
+    toast("Esta cotización ya fue convertida a reserva");
+    return;
+  }
+
+  pendingQuoteConversionId=q.id;
+  pendingQuoteConversionFolio=q.folio;
+
   switchView("newVoucher");
-  voucherForm.passenger.value=q.client||"";voucherForm.passengerCount.value=q.travelerCount||1;voucherForm.phone.value=q.phone||"";voucherForm.email.value=q.email||"";voucherForm.destination.value=q.destination||"";voucherForm.startDate.value=q.startDate||"";constrainSameMonth(voucherForm);voucherForm.endDate.value=q.endDate||"";voucherForm.tripType.value=q.tripType||"";voucherForm.notes.value=q.notes||"";voucherForm.advisor.value=q.advisor||"";voucherForm.advisorWhatsapp.value=q.advisorWhatsapp||"55 1900 0905";voucherForm.advisorEmail.value=q.advisorEmail||"hola@veloratravel.com";updateDuration(voucherForm);updateVoucherComputed();toast("Datos de la cotización cargados en el voucher");
+  voucherForm.passenger.value=q.client||"";
+  voucherForm.passengerCount.value=q.travelerCount||1;
+  voucherForm.phone.value=q.phone||"";
+  voucherForm.email.value=q.email||"";
+  voucherForm.destination.value=q.destination||"";
+  voucherForm.startDate.value=q.startDate||"";
+  constrainSameMonth(voucherForm);
+  voucherForm.endDate.value=q.endDate||"";
+  voucherForm.tripType.value=q.tripType||"";
+  voucherForm.notes.value=q.notes||"";
+  voucherForm.advisor.value=q.advisor||"";
+  voucherForm.advisorWhatsapp.value=q.advisorWhatsapp||"55 1900 0905";
+  voucherForm.advisorEmail.value=q.advisorEmail||"hola@veloratravel.com";
+
+  updateDuration(voucherForm);
+  updateVoucherComputed();
+
+  const acceptedText=(q.acceptedAt||q.status==="accepted")
+    ?"Cotización aceptada: datos cargados para crear la reserva"
+    :"Datos cargados para crear la reserva";
+  toast(acceptedText);
 };
 
 async function initSharedData(){

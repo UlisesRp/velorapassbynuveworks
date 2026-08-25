@@ -134,3 +134,20 @@ V1.9.6 · COTIZACIÓN PÚBLICA
   - la cotización pública muestra una leyenda de Meses sin intereses.
 - El cliente sigue viendo solamente el costo total final. Nunca recibe importes individuales ni el cargo MSI desglosado.
 - Ejecutar SUPABASE_V1.9.6_COTIZACION_FOTO_MSI.sql una vez en Supabase.
+
+
+V1.9.7 · FLUJO COMPARTIDO DE COTIZACIONES
+- Corregido: Abrir y Copiar enlace ahora usan el ID interno correcto y funcionan con cotizaciones creadas por cualquier usuario.
+- El historial muestra siempre "Creado por".
+- Nuevo estado visual:
+  - Enviada
+  - Vista por cliente
+  - Aceptada
+  - Reserva creada
+- La cotización pública tiene botón "Aceptar cotización".
+- La aceptación se guarda en Supabase con fecha/hora.
+- Cualquier usuario autenticado puede mover una cotización compartida a Reserva.
+- El botón ahora dice "→ Reserva".
+- Al generar el voucher desde una cotización, la cotización queda marcada como "Reserva creada" y enlazada mediante converted_voucher_id.
+- No se modificó la política de costos públicos: el cliente sigue viendo solo el total final.
+- Ejecutar SUPABASE_V1.9.7_ACEPTACION_RESERVA.sql una vez.
