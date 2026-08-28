@@ -3,19 +3,20 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Velora Pass · by Nuve Works</title>
+  <title>Velora App · by Nuve Works</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="velora-v2.css">
 </head>
 <body class="app-body auth-pending">
   <section class="auth-screen" id="authScreen" aria-live="polite">
     <div class="auth-card">
-      <img src="assets/velora-pass-logo.png" alt="Velora Pass by Nuve Works" class="auth-logo">
+      <img src="assets/velora-logo.png" alt="Velora Travel" class="auth-logo">
       <p class="eyebrow">ACCESO PRIVADO</p>
-      <h1>Bienvenido a Velora Pass</h1>
-      <p class="auth-copy">Inicia sesión con una cuenta autorizada para administrar cotizaciones y vouchers de Velora Travel.</p>
+      <h1>Bienvenido a Velora App</h1>
+      <p class="auth-copy">Inicia sesión con una cuenta autorizada para administrar clientes, cotizaciones, reservas, pagos y operación de las agencias.</p>
 
       <form id="loginForm" class="auth-form">
         <label class="field">
@@ -29,27 +30,31 @@
             <button type="button" class="password-toggle" id="togglePassword" aria-label="Mostrar contraseña">Ver</button>
           </div>
         </label>
-        <button class="primary-btn full-btn auth-submit" id="loginButton" type="submit">Entrar a Velora Pass</button>
+        <button class="primary-btn full-btn auth-submit" id="loginButton" type="submit">Entrar a Velora App</button>
         <p class="auth-error" id="loginError" role="alert"></p>
       </form>
 
       <div class="auth-status" id="authStatus">Comprobando sesión…</div>
-      <small class="auth-foot">Velora Pass · by Nuve Works</small>
+      <small class="auth-foot">Velora App · by Nuve Works</small>
     </div>
   </section>
 
   <div class="shell" id="appShell">
     <aside class="sidebar">
       <div class="brand app-brand">
-        <img src="assets/velora-pass-logo.png" alt="Velora Pass by Nuve Works" class="app-logo">
+        <img src="assets/velora-logo.png" alt="Velora Travel" class="app-logo">
       </div>
 
       <nav class="side-nav">
         <button class="nav-link active" data-view="dashboard"><span>⌂</span> Inicio</button>
+        <button class="nav-link" data-view="clients"><span>◎</span> Clientes</button>
         <button class="nav-link" data-view="newQuote"><span>＋</span> Nueva cotización</button>
         <button class="nav-link" data-view="quotes"><span>◇</span> Cotizaciones</button>
-        <button class="nav-link" data-view="newVoucher"><span>＋</span> Nuevo voucher</button>
-        <button class="nav-link" data-view="vouchers"><span>▣</span> Vouchers</button>
+        <button class="nav-link" data-view="reservations"><span>▤</span> Reservas</button>
+        <button class="nav-link" data-view="payments"><span>$</span> Pagos</button>
+        <button class="nav-link" data-view="calendar"><span>□</span> Calendario</button>
+        <button class="nav-link" data-view="reports"><span>↗</span> Reportes</button>
+        <button class="nav-link" data-view="vouchers"><span>✓</span> Confirmaciones</button>
       </nav>
 
       <div class="sidebar-account" id="sidebarAccount">
@@ -63,26 +68,47 @@
       <div class="sidebar-note">
         <span class="dot"></span>
         Supabase conectado
-        <small>Vouchers y cotizaciones se comparten entre todos los usuarios autorizados.</small>
-        <em>Velora Pass · by Nuve Works</em>
+        <small>Clientes, cotizaciones, reservas y operación se comparten entre todos los usuarios autorizados.</small>
+        <em>Velora App · by Nuve Works</em>
       </div>
     </aside>
 
     <main class="main">
       <header class="topbar">
         <div>
-          <p class="eyebrow app-kicker">VELORA PASS <span>· by NUVE WORKS</span></p>
+          <p class="eyebrow app-kicker">VELORA APP <span>· by NUVE WORKS</span></p>
           <h1 id="pageTitle">Panel general</h1>
         </div>
-        <button class="primary-btn" id="contextAction">＋ Nuevo voucher</button>
+        <button class="primary-btn" id="contextAction">＋ Nueva cotización</button>
       </header>
 
       <section class="view active" id="dashboardView">
+        <div class="ops-stats-grid">
+          <article class="ops-stat"><span>Clientes</span><strong id="opsStatClients">0</strong><small>Base compartida</small></article>
+          <article class="ops-stat"><span>Reservas activas</span><strong id="opsStatReservations">0</strong><small>Operación en curso</small></article>
+          <article class="ops-stat"><span>Saldo pendiente</span><strong id="opsStatBalance">$0</strong><small>Por cobrar a clientes</small></article>
+          <article class="ops-stat"><span>Próximas salidas</span><strong id="opsStatUpcoming">0</strong><small>Siguientes 30 días</small></article>
+        </div>
+
+        <div class="ops-dashboard-grid">
+          <div class="panel">
+            <div class="panel-head"><div><p class="eyebrow">OPERACIÓN</p><h2>Próximas reservas</h2></div><button class="text-btn" data-go="reservations">Ver reservas →</button></div>
+            <div id="opsUpcomingReservations" class="ops-compact-list"></div>
+            <div class="empty-state compact-empty" id="opsUpcomingEmpty"><div class="empty-icon">▤</div><h3>Sin salidas próximas</h3><p>Las reservas aparecerán aquí.</p></div>
+          </div>
+          <div class="panel">
+            <div class="panel-head"><div><p class="eyebrow">AGENDA</p><h2>Próximos eventos</h2></div><button class="text-btn" data-go="calendar">Abrir calendario →</button></div>
+            <div id="opsUpcomingEvents" class="ops-compact-list"></div>
+            <div class="empty-state compact-empty" id="opsEventsEmpty"><div class="empty-icon">□</div><h3>Agenda libre</h3><p>Agrega citas y seguimientos desde Calendario.</p></div>
+          </div>
+        </div>
+
+        <div class="section-divider-title"><span>Documentos y confirmaciones</span></div>
         <div class="stats-grid">
           <article class="stat-card">
-            <span>Vouchers</span>
+            <span>Confirmaciones</span>
             <strong id="statTotal">0</strong>
-            <small>Confirmaciones generadas</small>
+            <small>Documentos generados</small>
           </article>
           <article class="stat-card">
             <span>Pendientes</span>
@@ -105,7 +131,7 @@
           <div class="panel">
             <div class="panel-head">
               <div>
-                <p class="eyebrow">VOUCHERS</p>
+                <p class="eyebrow">CONFIRMACIONES</p>
                 <h2>Recientes</h2>
               </div>
               <button class="text-btn" data-go="vouchers">Ver todos →</button>
@@ -118,9 +144,9 @@
             </div>
             <div class="empty-state" id="recentVoucherEmpty">
               <div class="empty-icon">▣</div>
-              <h3>Aún no hay vouchers</h3>
-              <p>Crea el primero para probar el documento completo.</p>
-              <button class="primary-btn" data-go="newVoucher">Crear voucher</button>
+              <h3>Aún no hay confirmaciones</h3>
+              <p>Genera una desde una reserva liquidada.</p>
+              <button class="primary-btn" data-go="reservations">Ver reservas</button>
             </div>
           </div>
 
@@ -150,6 +176,8 @@
             <div class="form-section">
               <p class="eyebrow">CLIENTE</p>
               <div class="fields-grid">
+                <label class="field"><span>Agencia *</span><select required name="agency"><option>Velora Travel</option><option>Pink Sky Travel</option></select></label>
+                <label class="field"><span>Cliente guardado</span><select name="clientRecordId" id="quoteClientSelect"><option value="">Captura manual</option></select></label>
                 <label class="field span-2"><span>Nombre completo *</span><input required name="client" placeholder="Nombre del cliente"></label>
                 <label class="field"><span>Teléfono *</span><input required name="phone" placeholder="55 0000 0000"></label>
                 <label class="field"><span>Correo</span><input type="text" name="email" placeholder="correo@ejemplo.com o N/A" data-email-or-na></label>
@@ -254,7 +282,7 @@
             <p class="eyebrow">COTIZACIONES</p>
             <h3>Documento para enviar</h3>
             <p class="help-copy">Se genera un enlace independiente con formato Velora, listo para abrir en celular, imprimir o guardar como PDF.</p>
-            <div class="mini-note">Mientras sigamos en localStorage, el enlace solo funciona en el mismo navegador. Con Supabase quedará compartible de verdad.</div>
+            <div class="mini-note">El enlace público se guarda en Supabase y puede abrirse desde cualquier dispositivo.</div>
           </aside>
         </div>
       </section>
@@ -273,12 +301,17 @@
         </div>
       </section>
 
-      <!-- NEW VOUCHER -->
+      <!-- NEW CONFIRMATION -->
       <section class="view" id="newVoucherView">
         <div class="form-layout">
           <form class="panel voucher-form" id="voucherForm">
             <div class="form-section">
               <p class="eyebrow">1 · DATOS DEL VIAJERO</p>
+              <input type="hidden" name="sourceReservationId" id="sourceReservationId">
+              <div class="fields-grid confirmation-source-grid">
+                <label class="field"><span>Agencia *</span><select required name="agency"><option>Velora Travel</option><option>Pink Sky Travel</option></select></label>
+                <label class="field"><span>Reserva origen</span><input name="sourceReservationCode" readonly placeholder="Desde Reservas"></label>
+              </div>
               <div class="fields-grid">
                 <label class="field span-2"><span>Nombre completo *</span><input required name="passenger" placeholder="Nombre del pasajero"></label>
                 <label class="field"><span>Número de pasajeros *</span><input required type="number" min="1" name="passengerCount" value="1"></label>
@@ -406,7 +439,7 @@
 
             <div class="form-actions">
               <button type="button" class="ghost-btn" id="fillVoucherDemo">Llenar ejemplo</button>
-              <button type="submit" class="primary-btn">Generar voucher</button>
+              <button type="submit" class="primary-btn">Generar confirmación</button>
             </div>
           </form>
 
@@ -423,11 +456,137 @@
         </div>
       </section>
 
-      <!-- VOUCHERS LIST -->
+      <!-- CLIENTS -->
+      <section class="view" id="clientsView">
+        <div class="ops-two-col">
+          <form class="panel ops-form" id="clientForm">
+            <div class="panel-head"><div><p class="eyebrow">CRM</p><h2 id="clientFormTitle">Nuevo cliente</h2></div><button type="button" class="text-btn" id="resetClientForm">Limpiar</button></div>
+            <input type="hidden" name="id">
+            <div class="fields-grid">
+              <label class="field"><span>Agencia *</span><select required name="agency"><option>Velora Travel</option><option>Pink Sky Travel</option></select></label>
+              <label class="field"><span>Estatus</span><select name="status"><option value="active">Activo</option><option value="inactive">Inactivo</option></select></label>
+              <label class="field span-2"><span>Nombre completo *</span><input required name="fullName"></label>
+              <label class="field"><span>Teléfono</span><input name="phone"></label>
+              <label class="field"><span>Correo</span><input name="email" placeholder="correo@ejemplo.com o N/A"></label>
+              <label class="field"><span>Adultos</span><input type="number" min="0" name="adults" value="1"></label>
+              <label class="field"><span>Menores</span><input type="number" min="0" name="minors" value="0"></label>
+              <label class="field span-2"><span>Notas</span><textarea name="notes" rows="4" placeholder="Preferencias, observaciones, seguimiento..."></textarea></label>
+            </div>
+            <div class="form-actions"><button type="submit" class="primary-btn">Guardar cliente</button></div>
+          </form>
+          <div class="panel">
+            <div class="panel-head vouchers-head"><div><p class="eyebrow">BASE DE CLIENTES</p><h2>Clientes</h2></div><div class="search"><span>⌕</span><input id="searchClients" placeholder="Buscar nombre, correo o teléfono"></div></div>
+            <div id="clientsList" class="ops-list"></div>
+            <div class="empty-state" id="clientsEmpty"><div class="empty-icon">◎</div><h3>No hay clientes</h3><p>Guarda el primero para empezar el CRM.</p></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- RESERVATIONS -->
+      <section class="view" id="reservationsView">
+        <div class="ops-two-col reservations-layout">
+          <form class="panel ops-form" id="reservationForm">
+            <div class="panel-head"><div><p class="eyebrow">OPERACIÓN</p><h2 id="reservationFormTitle">Nueva reserva</h2></div><button type="button" class="text-btn" id="resetReservationForm">Limpiar</button></div>
+            <input type="hidden" name="id">
+            <input type="hidden" name="quoteId">
+            <div class="fields-grid">
+              <label class="field"><span>Agencia *</span><select required name="agency"><option>Velora Travel</option><option>Pink Sky Travel</option></select></label>
+              <label class="field"><span>Cliente guardado</span><select name="clientId" id="reservationClientSelect"><option value="">Captura manual</option></select></label>
+              <label class="field span-2"><span>Cliente *</span><input required name="clientName"></label>
+              <label class="field"><span>Teléfono</span><input name="phone"></label>
+              <label class="field"><span>Correo</span><input name="email" placeholder="correo o N/A"></label>
+              <label class="field span-2"><span>Destino *</span><input required name="destination"></label>
+              <label class="field"><span>Salida *</span><input required type="date" name="startDate"></label>
+              <label class="field"><span>Regreso *</span><input required type="date" name="endDate"></label>
+              <label class="field"><span>Pasajeros</span><input type="number" min="1" name="travelerCount" value="1"></label>
+              <label class="field"><span>Total de reserva *</span><input required type="number" min="0" step="0.01" name="total"></label>
+              <label class="field"><span>Estatus</span><select name="status"><option value="pending">Pendiente</option><option value="confirmed">Confirmada</option><option value="liquidated">Liquidada</option><option value="cancelled">Cancelada</option></select></label>
+              <label class="service-option invoice-option"><input type="checkbox" name="requiresInvoice" value="1"><span><b>Requiere factura</b><small>Marcar si el cliente la solicita</small></span></label>
+              <label class="field span-2"><span>Notas internas</span><textarea name="notes" rows="4"></textarea></label>
+            </div>
+            <div class="form-actions"><button type="submit" class="primary-btn">Guardar reserva</button></div>
+          </form>
+          <div class="panel">
+            <div class="panel-head vouchers-head"><div><p class="eyebrow">RESERVAS</p><h2>Operación de viajes</h2></div><div class="search"><span>⌕</span><input id="searchReservations" placeholder="Buscar cliente, destino o folio"></div></div>
+            <div id="reservationsList" class="ops-list"></div>
+            <div class="empty-state" id="reservationsEmpty"><div class="empty-icon">▤</div><h3>No hay reservas</h3><p>Puedes crear una manualmente o convertir una cotización.</p></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- PAYMENTS -->
+      <section class="view" id="paymentsView">
+        <div class="ops-two-col">
+          <form class="panel ops-form" id="paymentForm">
+            <div class="panel-head"><div><p class="eyebrow">COBROS DE VIAJES</p><h2>Registrar pago</h2></div></div>
+            <div class="fields-grid">
+              <label class="field span-2"><span>Reserva *</span><select required name="reservationId" id="paymentReservationSelect"><option value="">Selecciona reserva</option></select></label>
+              <label class="field"><span>Monto *</span><input required type="number" min="0.01" step="0.01" name="amount"></label>
+              <label class="field"><span>Fecha *</span><input required type="date" name="paidAt"></label>
+              <label class="field"><span>Método</span><select name="method"><option>Transferencia</option><option>Tarjeta</option><option>Efectivo</option><option>Depósito</option><option>Otro</option></select></label>
+              <label class="field"><span>Referencia</span><input name="reference"></label>
+              <label class="field span-2"><span>Notas</span><textarea name="notes" rows="3"></textarea></label>
+            </div>
+            <div class="form-actions"><button type="submit" class="primary-btn">Registrar pago</button></div>
+            <div class="mini-note">Este módulo registra pagos de las reservas de tus clientes. No tiene relación con membresías o cobros de Velora App.</div>
+          </form>
+          <div class="panel">
+            <div class="panel-head vouchers-head"><div><p class="eyebrow">HISTORIAL</p><h2>Pagos</h2></div><div class="search"><span>⌕</span><input id="searchPayments" placeholder="Buscar cliente, reserva o referencia"></div></div>
+            <div class="table-wrap"><table><thead><tr><th>Fecha</th><th>Reserva</th><th>Cliente</th><th>Método</th><th>Monto</th><th>Registró</th><th></th></tr></thead><tbody id="paymentsTable"></tbody></table></div>
+            <div class="empty-state" id="paymentsEmpty"><div class="empty-icon">$</div><h3>No hay pagos</h3><p>Los abonos y liquidaciones aparecerán aquí.</p></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- CALENDAR -->
+      <section class="view" id="calendarView">
+        <div class="calendar-layout">
+          <div class="panel calendar-panel">
+            <div class="calendar-toolbar"><button class="icon-btn" id="calendarPrev" type="button">←</button><h2 id="calendarTitle">Calendario</h2><button class="icon-btn" id="calendarNext" type="button">→</button></div>
+            <div class="calendar-weekdays"><span>Lun</span><span>Mar</span><span>Mié</span><span>Jue</span><span>Vie</span><span>Sáb</span><span>Dom</span></div>
+            <div id="calendarGrid" class="calendar-grid"></div>
+          </div>
+          <form class="panel ops-form" id="eventForm">
+            <div class="panel-head"><div><p class="eyebrow">AGENDA</p><h2>Nuevo evento</h2></div></div>
+            <div class="fields-grid">
+              <label class="field"><span>Agencia *</span><select required name="agency"><option>Velora Travel</option><option>Pink Sky Travel</option></select></label>
+              <label class="field"><span>Tipo</span><select name="eventType"><option>Seguimiento</option><option>Cita</option><option>Pago</option><option>Llamada</option><option>Recordatorio</option><option>Otro</option></select></label>
+              <label class="field span-2"><span>Título *</span><input required name="title"></label>
+              <label class="field"><span>Fecha *</span><input required type="date" name="eventDate"></label>
+              <label class="field"><span>Hora</span><input type="time" name="eventTime"></label>
+              <label class="field span-2"><span>Cliente</span><input name="clientName"></label>
+              <label class="field span-2"><span>Notas</span><textarea name="notes" rows="3"></textarea></label>
+            </div>
+            <div class="form-actions"><button type="submit" class="primary-btn">Guardar evento</button></div>
+            <div id="eventList" class="event-list"></div>
+          </form>
+        </div>
+      </section>
+
+      <!-- REPORTS -->
+      <section class="view" id="reportsView">
+        <div class="panel reports-panel">
+          <div class="panel-head reports-head"><div><p class="eyebrow">ANÁLISIS</p><h2>Reportes</h2></div><label class="field month-field"><span>Mes</span><input type="month" id="reportMonth"></label></div>
+          <div class="report-grid">
+            <article class="report-card"><span>Cotizaciones</span><strong id="reportQuotes">0</strong><small id="reportQuotesCompare">—</small></article>
+            <article class="report-card"><span>Aceptadas</span><strong id="reportAccepted">0</strong><small id="reportAcceptedCompare">—</small></article>
+            <article class="report-card"><span>Reservas</span><strong id="reportReservations">0</strong><small id="reportReservationsCompare">—</small></article>
+            <article class="report-card"><span>Venta reservada</span><strong id="reportSales">$0</strong><small id="reportSalesCompare">—</small></article>
+            <article class="report-card"><span>Cobrado</span><strong id="reportCollected">$0</strong><small id="reportCollectedCompare">—</small></article>
+            <article class="report-card"><span>Saldo pendiente</span><strong id="reportPending">$0</strong><small>Reservas del mes</small></article>
+          </div>
+          <div class="report-agency-grid">
+            <div class="report-agency-card"><p class="eyebrow">VELORA TRAVEL</p><div id="reportVelora"></div></div>
+            <div class="report-agency-card"><p class="eyebrow">PINK SKY TRAVEL</p><div id="reportPink"></div></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- CONFIRMATIONS LIST -->
       <section class="view" id="vouchersView">
         <div class="panel">
           <div class="panel-head vouchers-head">
-            <div><p class="eyebrow">HISTORIAL</p><h2>Vouchers</h2></div>
+            <div><p class="eyebrow">HISTORIAL</p><h2>Confirmaciones</h2></div>
             <div class="search"><span>⌕</span><input id="searchVouchers" placeholder="Buscar pasajero, destino o folio"></div>
           </div>
           <div class="table-wrap">
@@ -436,7 +595,7 @@
               <tbody id="allVoucherTable"></tbody>
             </table>
           </div>
-          <div class="empty-state" id="allVoucherEmpty"><div class="empty-icon">▣</div><h3>No hay vouchers</h3><p>Cuando generes uno aparecerá aquí.</p></div>
+          <div class="empty-state" id="allVoucherEmpty"><div class="empty-icon">▣</div><h3>No hay confirmaciones</h3><p>Cuando generes una aparecerá aquí.</p></div>
         </div>
       </section>
     </main>
@@ -447,7 +606,7 @@
       <button class="profile-modal-close" id="profileModalClose" type="button" aria-label="Cerrar">×</button>
       <p class="eyebrow">USUARIO</p>
       <h2 id="profileModalTitle">Editar usuario</h2>
-      <p class="profile-modal-copy">Este nombre se mostrará dentro de Velora Pass y en “Creado por”. Tu correo de acceso no cambia.</p>
+      <p class="profile-modal-copy">Este nombre se mostrará dentro de Velora App y en “Creado por”. Tu correo de acceso no cambia.</p>
       <form id="profileForm" class="profile-form">
         <label class="field">
           <span>Nombre para mostrar *</span>
@@ -484,5 +643,6 @@
   <script src="supabase-client.js"></script>
   <script src="auth.js"></script>
   <script src="app.js"></script>
+  <script src="velora-v2.js"></script>
 </body>
 </html>

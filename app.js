@@ -74,7 +74,8 @@ function normalizeQuote(row){
     viewedAt: row.viewed_at,
     acceptedAt: row.accepted_at,
     acceptedByName: row.accepted_by_name,
-    convertedVoucherId: row.converted_voucher_id
+    convertedVoucherId: row.converted_voucher_id,
+    convertedReservationId: row.converted_reservation_id
   };
 }
 
@@ -137,21 +138,29 @@ $$('[data-email-or-na]').forEach(input=>{
 
 const viewTitles={
   dashboard:"Panel general",
+  clients:"Clientes",
   newQuote:"Nueva cotización",
   quotes:"Cotizaciones",
-  newVoucher:"Nuevo voucher",
-  vouchers:"Vouchers"
+  reservations:"Reservas",
+  payments:"Pagos de clientes",
+  calendar:"Calendario",
+  reports:"Reportes",
+  newVoucher:"Nueva confirmación",
+  vouchers:"Confirmaciones"
 };
 function switchView(name){
   $$(".view").forEach(v=>v.classList.remove("active"));
   $$(".nav-link").forEach(v=>v.classList.toggle("active",v.dataset.view===name));
   $(`#${name}View`)?.classList.add("active");
-  $("#pageTitle").textContent=viewTitles[name]||"Velora Pass";
+  $("#pageTitle").textContent=viewTitles[name]||"Velora App";
   const action=$("#contextAction");
+  action.hidden=false;
   if(name==="newQuote"){ action.textContent="Ver cotizaciones"; action.dataset.target="quotes"; }
   else if(name==="quotes"){ action.textContent="＋ Nueva cotización"; action.dataset.target="newQuote"; }
-  else if(name==="newVoucher"){ action.textContent="Ver vouchers"; action.dataset.target="vouchers"; }
-  else { action.textContent="＋ Nuevo voucher"; action.dataset.target="newVoucher"; }
+  else if(name==="newVoucher"){ action.textContent="Ver confirmaciones"; action.dataset.target="vouchers"; }
+  else if(name==="vouchers"){ action.textContent="Ver reservas"; action.dataset.target="reservations"; }
+  else if(name==="dashboard"){ action.textContent="＋ Nueva cotización"; action.dataset.target="newQuote"; }
+  else { action.hidden=true; }
   if(["dashboard","quotes","vouchers"].includes(name)) loadSharedData({silent:true});
   window.scrollTo({top:0,behavior:"smooth"});
 }
@@ -170,9 +179,9 @@ function quoteLink(token){
   return u.href;
 }
 function showModal(type,folio,link){
-  $("#modalType").textContent=type==="quote"?"COTIZACIÓN GENERADA":"VOUCHER GENERADO";
+  $("#modalType").textContent=type==="quote"?"COTIZACIÓN GENERADA":"CONFIRMACIÓN GENERADA";
   $("#modalFolio").textContent=folio;
-  $("#modalText").textContent=type==="quote"?"Ya puedes abrir la cotización o copiar su enlace para enviarlo.":"Ya puedes abrir el documento completo o copiar su enlace.";
+  $("#modalText").textContent=type==="quote"?"Ya puedes abrir la cotización o copiar su enlace para enviarlo.":"Ya puedes abrir la confirmación completa o copiar su enlace.";
   $("#modalLink").value=link;
   $("#openDocument").href=link;
   $("#documentModal").classList.add("open");
@@ -207,11 +216,11 @@ window.copyQuoteLink=async id=>{
 };
 window.deleteVoucher=async id=>{
   const v=voucherCache.find(x=>x.id===id); if(!v)return;
-  const warning=v.signedAt?"Este voucher YA ESTÁ FIRMADO. ¿Seguro que quieres eliminarlo definitivamente?":`¿Eliminar definitivamente el voucher ${v.folio}?`;
+  const warning=v.signedAt?"Este voucher YA ESTÁ FIRMADO. ¿Seguro que quieres eliminarlo definitivamente?":`¿Eliminar definitivamente la confirmación ${v.folio}?`;
   if(!confirm(warning)) return;
   const {error}=await db.from("vouchers").delete().eq("id",id);
   if(error){toast("No se pudo eliminar el voucher");console.error(error);return}
-  toast("Voucher eliminado");
+  toast("Confirmación eliminada");
   await loadSharedData({silent:true});
 };
 window.deleteQuote=async id=>{
@@ -234,7 +243,7 @@ function voucherRow(v,compact=false){
   return `<tr><td><strong>${escapeHtml(v.folio)}</strong></td><td>${escapeHtml(v.passenger)}</td><td>${escapeHtml(v.destination)}</td><td>${formatDate(v.createdAt?.slice(0,10))}</td><td>${voucherStatus(v)}</td><td>${v.signedAt?shortDateTime(v.signedAt):"—"}</td><td>${actions}</td></tr>`;
 }
 function quoteStatus(q){
-  if(q.convertedVoucherId || q.status==="converted"){
+  if(q.convertedReservationId || q.convertedVoucherId || q.status==="converted"){
     return `<span class="status quote-converted">Reserva creada</span>`;
   }
   if(q.acceptedAt || q.status==="accepted"){
@@ -253,7 +262,7 @@ function quoteCard(q,compact=false){
 
   let reserveButton="";
   if(!compact){
-    reserveButton=(q.convertedVoucherId || q.status==="converted")
+    reserveButton=(q.convertedReservationId || q.convertedVoucherId || q.status==="converted")
       ? `<button class="icon-btn convert-btn converted" type="button" disabled title="Esta cotización ya fue convertida a reserva">Reserva creada</button>`
       : `<button class="icon-btn convert-btn ${q.acceptedAt||q.status==="accepted"?"accepted-ready":""}" title="Mover datos a reserva" onclick="convertQuoteToVoucher('${q.id}')">→ Reserva</button>`;
   }
@@ -362,6 +371,8 @@ voucherForm.addEventListener("submit",async e=>{
   submit.disabled=true; submit.textContent="Guardando…";
   try{
     const payload=Object.fromEntries(new FormData(voucherForm).entries());
+    const sourceReservationId=payload.sourceReservationId||"";
+    delete payload.sourceReservationId;
     delete payload.durationPreview;
     delete payload.nightsPreview;
     const {data:row,error}=await db.from("vouchers").insert({payload,status:"pending"}).select("*").single();
@@ -388,10 +399,15 @@ voucherForm.addEventListener("submit",async e=>{
       }
     }
 
+    if(sourceReservationId){
+      const {error:reservationUpdateError}=await db.from("reservations").update({voucher_id:row.id,status:"liquidated",updated_at:new Date().toISOString()}).eq("id",sourceReservationId);
+      if(reservationUpdateError) console.error("No se pudo enlazar la confirmación con la reserva:",reservationUpdateError);
+    }
+
     showModal("voucher",voucher.folio,voucherLink(voucher.publicToken));
     await loadSharedData({silent:true});
   }catch(error){toast(friendlyDbError(error))}
-  finally{submit.disabled=false;submit.textContent="Generar voucher"}
+  finally{submit.disabled=false;submit.textContent="Generar confirmación"}
 });
 
 $("#fillVoucherDemo").addEventListener("click",()=>{
@@ -626,7 +642,7 @@ window.convertQuoteToVoucher=id=>{
     return;
   }
 
-  if(q.convertedVoucherId || q.status==="converted"){
+  if(q.convertedReservationId || q.convertedVoucherId || q.status==="converted"){
     toast("Esta cotización ya fue convertida a reserva");
     return;
   }

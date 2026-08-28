@@ -151,3 +151,23 @@ V1.9.7 · FLUJO COMPARTIDO DE COTIZACIONES
 - Al generar el voucher desde una cotización, la cotización queda marcada como "Reserva creada" y enlazada mediante converted_voucher_id.
 - No se modificó la política de costos públicos: el cliente sigue viendo solo el total final.
 - Ejecutar SUPABASE_V1.9.7_ACEPTACION_RESERVA.sql una vez.
+
+
+============================================================
+VELORA APP V2.0 · OPERACIÓN INTERNA TIPO AuRA
+============================================================
+- El panel administrativo pasa a llamarse Velora App.
+- Sin membresías, planes ni panel de cobro del software.
+- Módulos internos: Clientes, Cotizaciones, Reservas, Pagos de clientes, Calendario, Reportes y Confirmaciones.
+- Clientes: alta, edición, baja, adultos/menores, notas y envío directo a cotización.
+- Cotizaciones: conserva todo V1.9.7 y añade agencia/cliente guardado.
+- Cotización aceptada -> Reserva (ya no genera voucher directamente).
+- Reservas: creación manual o desde cotización, estatus, total, saldo, factura, creador y seguimiento.
+- Pagos: abonos por reserva; al cubrir el total la reserva queda Liquidada.
+- Confirmación/Voucher: solo puede generarse desde una reserva sin saldo pendiente; queda vinculada a la reserva.
+- Calendario: salidas de reservas + citas/seguimientos/eventos manuales.
+- Reportes: cotizaciones, aceptadas, reservas, venta, cobrado, pendiente, comparativo contra mes anterior y desglose por agencia.
+- Agencias incluidas: Velora Travel y Pink Sky Travel.
+- Todos los usuarios autenticados autorizados comparten la operación.
+- Ejecutar SUPABASE_V2.0_OPERACION_INTERNA.sql una sola vez en Supabase.
+- Conservar el supabase-client.js real al sustituir archivos.

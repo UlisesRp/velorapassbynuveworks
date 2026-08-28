@@ -36,7 +36,7 @@
 
   function setLoginBusy(isBusy, text = "Entrando…") {
     loginButton.disabled = isBusy;
-    loginButton.textContent = isBusy ? text : "Entrar a Velora Pass";
+    loginButton.textContent = isBusy ? text : "Entrar a Velora App";
   }
 
   function showError(message = "") {
