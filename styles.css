@@ -2154,3 +2154,126 @@ textarea,
 button{
   box-sizing:border-box;
 }
+
+
+/* ===================== V2.2.2 · VUELOS FIJOS EN COTIZACIÓN ===================== */
+.quote-fixed-flights-head{
+  margin-bottom:14px;
+}
+
+.quote-fixed-flights{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:13px;
+}
+
+.quote-flight-card{
+  min-width:0;
+  padding:15px;
+  border:1px solid #dfd5d2;
+  border-radius:16px;
+  background:#fbf8f6;
+}
+
+.quote-flight-card-title{
+  display:flex;
+  align-items:center;
+  gap:9px;
+  margin-bottom:13px;
+}
+
+.quote-flight-card-title span{
+  display:grid;
+  place-items:center;
+  min-width:58px;
+  height:25px;
+  padding:0 9px;
+  border-radius:999px;
+  background:#7b4658;
+  color:#fff;
+  font-size:8px;
+  font-weight:900;
+  letter-spacing:.09em;
+}
+
+.quote-flight-card-title strong{
+  color:#342d2f;
+  font:700 17px "Playfair Display",serif;
+}
+
+.quote-flight-fields{
+  grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+  gap:12px !important;
+}
+
+.quote-flight-fields > *,
+.quote-flight-fields input{
+  min-width:0;
+  max-width:100%;
+}
+
+.quote-flight-price-row{
+  display:flex;
+  justify-content:flex-end;
+  margin-top:13px;
+}
+
+.quote-flight-price{
+  width:min(330px,100%);
+  padding:13px 14px;
+  border:1px solid #ddcfaa;
+  border-radius:14px;
+  background:#fffaf0;
+}
+
+.quote-flight-price input{
+  font-weight:800;
+}
+
+.quote-extra-services-head{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:18px;
+  margin-top:24px;
+  padding-top:20px;
+  border-top:1px solid var(--line);
+}
+
+.quote-extra-services-head > div{
+  min-width:0;
+}
+
+.quote-extra-services-head .compact-btn{
+  flex:0 0 auto;
+}
+
+/* No repetir el error de columnas aplastadas en esta nueva sección. */
+@media(max-width:980px){
+  .quote-fixed-flights{
+    grid-template-columns:minmax(0,1fr);
+  }
+}
+
+@media(max-width:760px){
+  .quote-flight-fields{
+    grid-template-columns:minmax(0,1fr) !important;
+  }
+
+  .quote-extra-services-head{
+    display:grid;
+    grid-template-columns:minmax(0,1fr);
+  }
+
+  .quote-extra-services-head .compact-btn{
+    width:100%;
+  }
+
+  .quote-flight-price-row{
+    justify-content:stretch;
+  }
+
+  .quote-flight-price{
+    width:100%;
+  }
+}

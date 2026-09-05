@@ -468,6 +468,44 @@ $("#fillVoucherDemo").addEventListener("click",()=>{
 // Cotizaciones
 const quoteForm=$("#quoteForm");
 wireDates(quoteForm);
+
+// V2.2.2 · Vuelos fijos.
+// Las fechas aéreas siguen a las fechas generales hasta que el asesor las edita manualmente.
+let quoteOutboundFlightDateManual=false;
+let quoteReturnFlightDateManual=false;
+let syncingQuoteFlightDates=false;
+
+function syncQuoteOutboundFlightDate(force=false){
+  if(!quoteForm?.quoteOutboundFlightDate)return;
+  if(force || !quoteOutboundFlightDateManual){
+    syncingQuoteFlightDates=true;
+    quoteForm.quoteOutboundFlightDate.value=quoteForm.startDate.value||"";
+    syncingQuoteFlightDates=false;
+  }
+}
+
+function syncQuoteReturnFlightDate(force=false){
+  if(!quoteForm?.quoteReturnFlightDate)return;
+  if(force || !quoteReturnFlightDateManual){
+    syncingQuoteFlightDates=true;
+    quoteForm.quoteReturnFlightDate.value=quoteForm.endDate.value||"";
+    syncingQuoteFlightDates=false;
+  }
+}
+
+quoteForm.quoteOutboundFlightDate?.addEventListener("input",()=>{
+  if(!syncingQuoteFlightDates)quoteOutboundFlightDateManual=true;
+});
+
+quoteForm.quoteReturnFlightDate?.addEventListener("input",()=>{
+  if(!syncingQuoteFlightDates)quoteReturnFlightDateManual=true;
+});
+
+["input","change"].forEach(evt=>{
+  quoteForm.startDate?.addEventListener(evt,()=>syncQuoteOutboundFlightDate());
+  quoteForm.endDate?.addEventListener(evt,()=>syncQuoteReturnFlightDate());
+});
+
 let quoteItemCounter=0;
 
 function readQuoteImage(file){
@@ -577,7 +615,47 @@ function addQuoteItem(data={}){
   updateQuoteTotal();
 }
 
-function getQuoteItems(){
+function getFixedFlightItem(){
+  const amount=Math.max(0,Number(quoteForm.fixedFlightAmount?.value||0));
+  const outboundAirline=quoteForm.quoteOutboundAirline?.value.trim()||"";
+  const outboundFlight=quoteForm.quoteOutboundFlight?.value.trim()||"";
+  const outboundRoute=quoteForm.quoteOutboundRoute?.value.trim()||"";
+  const returnAirline=quoteForm.quoteReturnAirline?.value.trim()||"";
+  const returnFlight=quoteForm.quoteReturnFlight?.value.trim()||"";
+  const returnRoute=quoteForm.quoteReturnRoute?.value.trim()||"";
+
+  const hasFlightData=Boolean(
+    amount ||
+    outboundAirline || outboundFlight || outboundRoute ||
+    returnAirline || returnFlight || returnRoute
+  );
+
+  // Si es una cotización terrestre y se dejan los vuelos totalmente vacíos,
+  // no inventamos un servicio de vuelos en el documento del cliente.
+  if(!hasFlightData)return null;
+
+  const leg=(label,date,airline,flight,route)=>{
+    const pieces=[];
+    if(date)pieces.push(formatDate(date));
+    const carrier=[airline,flight].filter(Boolean).join(" ");
+    if(carrier)pieces.push(carrier);
+    if(route)pieces.push(route);
+    return `${label}: ${pieces.join(" · ")||"Por confirmar"}`;
+  };
+
+  return {
+    category:"Vuelos",
+    concept:"Vuelos del viaje",
+    description:[
+      leg("Ida",quoteForm.quoteOutboundFlightDate?.value||quoteForm.startDate.value,outboundAirline,outboundFlight,outboundRoute),
+      leg("Regreso",quoteForm.quoteReturnFlightDate?.value||quoteForm.endDate.value,returnAirline,returnFlight,returnRoute)
+    ].join(" | "),
+    amount,
+    hotelImage:""
+  };
+}
+
+function getExtraQuoteItems(){
   return [...$("#quoteItems").querySelectorAll(".quote-item-row")].map(row=>{
     const category=row.querySelector('[name="category"]').value;
     return {
@@ -588,6 +666,14 @@ function getQuoteItems(){
       hotelImage:category==="Hospedaje"?(row._hotelImageData||""):""
     };
   }).filter(x=>x.concept||x.description||x.amount||x.hotelImage);
+}
+
+function getQuoteItems(){
+  const fixedFlight=getFixedFlightItem();
+  return [
+    ...(fixedFlight?[fixedFlight]:[]),
+    ...getExtraQuoteItems()
+  ];
 }
 
 function quoteUsesMsi(){
@@ -626,8 +712,11 @@ function updateQuoteTotal(){
 $("#addQuoteItem").addEventListener("click",()=>addQuoteItem());
 quoteForm.msiEnabled?.addEventListener("change",syncQuotePaymentMode);
 quoteForm.msiAmount?.addEventListener("input",updateQuoteTotal);
+quoteForm.fixedFlightAmount?.addEventListener("input",updateQuoteTotal);
 addQuoteItem();
 syncQuotePaymentMode();
+syncQuoteOutboundFlightDate(true);
+syncQuoteReturnFlightDate(true);
 
 quoteForm.addEventListener("submit",async e=>{
   e.preventDefault();
@@ -665,7 +754,11 @@ $("#fillQuoteDemo").addEventListener("click",()=>{
   try{
   const f=quoteForm;const start=new Date(Date.now()+14*86400000);const last=new Date(start.getFullYear(),start.getMonth()+1,0).getDate();const end=new Date(start.getFullYear(),start.getMonth(),Math.min(start.getDate()+4,last));const iso=d=>d.toISOString().slice(0,10);
   f.client.value="Mariana González Ruiz";f.phone.value="55 1234 5678";f.email.value="mariana@ejemplo.com";f.travelerCount.value=2;f.tripType.value="Vacaciones";f.title.value="Cancún · Todo Incluido";f.destination.value="Cancún, Quintana Roo";f.startDate.value=iso(start);constrainSameMonth(f);f.endDate.value=iso(end);f.validUntil.value=iso(new Date(Date.now()+3*86400000));
-  $("#quoteItems").innerHTML="";addQuoteItem({category:"Vuelos",concept:"Vuelos redondos",description:"CDMX – Cancún – CDMX",amount:6800});addQuoteItem({category:"Hospedaje",concept:"Hotel 4 noches",description:"Junior Suite · Todo incluido",amount:17800});addQuoteItem({category:"Traslados",concept:"Traslados aeropuerto",description:"Llegada y salida",amount:2400});
+  quoteOutboundFlightDateManual=false;quoteReturnFlightDateManual=false;syncQuoteOutboundFlightDate(true);syncQuoteReturnFlightDate(true);
+  f.quoteOutboundAirline.value="Aeroméxico";f.quoteOutboundFlight.value="AM 512";f.quoteOutboundRoute.value="CDMX → Cancún · 08:30";
+  f.quoteReturnAirline.value="Aeroméxico";f.quoteReturnFlight.value="AM 513";f.quoteReturnRoute.value="Cancún → CDMX · 19:40";
+  f.fixedFlightAmount.value=6800;
+  $("#quoteItems").innerHTML="";addQuoteItem({category:"Hospedaje",concept:"Hotel 4 noches",description:"Junior Suite · Todo incluido",amount:17800});addQuoteItem({category:"Traslados",concept:"Traslados aeropuerto",description:"Llegada y salida",amount:2400});
   f.msiEnabled.checked=false;f.msiAmount.value="";f.deposit.value=8000;f.paymentDeadline.value=iso(new Date(Date.now()+8*86400000));f.paymentMethods.value="Transferencia bancaria\nTarjeta de crédito o débito\nDepósito bancario";f.includes.value="Vuelos redondos\n4 noches de hospedaje\nPlan todo incluido\nTraslados aeropuerto-hotel-aeropuerto";f.excludes.value="Gastos personales\nPropinas\nServicios no indicados";f.notes.value="Tarifa sujeta a disponibilidad al momento de reservar.";f.advisor.value="Velora Travel";syncQuotePaymentMode();updateDuration(f);updateQuoteTotal();toast("Ejemplo de cotización cargado");
   }catch(error){console.error("Error llenando ejemplo de cotización:",error);toast("No se pudo llenar el ejemplo");}
 });

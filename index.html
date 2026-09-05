@@ -211,10 +211,77 @@
             </div>
 
             <div class="form-section">
-              <div class="section-title-row">
+              <div class="section-title-row quote-fixed-flights-head">
                 <div>
-                  <p class="eyebrow">SERVICIOS Y PRECIOS</p>
-                  <p class="section-copy">Captura aquí los costos internos. El cliente verá los servicios incluidos, pero nunca el desglose de importes.</p>
+                  <p class="eyebrow">VUELOS</p>
+                  <p class="section-copy">Las fechas toman por default la salida y el regreso del viaje, pero puedes modificarlas si el itinerario aéreo cambia.</p>
+                </div>
+              </div>
+
+              <div class="quote-fixed-flights">
+                <article class="quote-flight-card">
+                  <div class="quote-flight-card-title">
+                    <span>IDA</span>
+                    <strong>Vuelo de salida</strong>
+                  </div>
+                  <div class="fields-grid quote-flight-fields">
+                    <label class="field">
+                      <span>Fecha</span>
+                      <input type="date" name="quoteOutboundFlightDate">
+                    </label>
+                    <label class="field">
+                      <span>Aerolínea</span>
+                      <input name="quoteOutboundAirline" placeholder="Ej. Aeroméxico">
+                    </label>
+                    <label class="field">
+                      <span>Número de vuelo</span>
+                      <input name="quoteOutboundFlight" placeholder="Ej. AM 512">
+                    </label>
+                    <label class="field">
+                      <span>Ruta / horario</span>
+                      <input name="quoteOutboundRoute" placeholder="Ej. CDMX → Cancún · 08:30">
+                    </label>
+                  </div>
+                </article>
+
+                <article class="quote-flight-card">
+                  <div class="quote-flight-card-title">
+                    <span>REGRESO</span>
+                    <strong>Vuelo de regreso</strong>
+                  </div>
+                  <div class="fields-grid quote-flight-fields">
+                    <label class="field">
+                      <span>Fecha</span>
+                      <input type="date" name="quoteReturnFlightDate">
+                    </label>
+                    <label class="field">
+                      <span>Aerolínea</span>
+                      <input name="quoteReturnAirline" placeholder="Ej. Aeroméxico">
+                    </label>
+                    <label class="field">
+                      <span>Número de vuelo</span>
+                      <input name="quoteReturnFlight" placeholder="Ej. AM 513">
+                    </label>
+                    <label class="field">
+                      <span>Ruta / horario</span>
+                      <input name="quoteReturnRoute" placeholder="Ej. Cancún → CDMX · 19:40">
+                    </label>
+                  </div>
+                </article>
+              </div>
+
+              <div class="quote-flight-price-row">
+                <label class="field quote-flight-price">
+                  <span>Importe total de vuelos</span>
+                  <input type="number" min="0" step="0.01" name="fixedFlightAmount" value="0" placeholder="0.00">
+                  <small class="field-hint">Se suma al costo interno de la cotización. El cliente sigue viendo únicamente el total final.</small>
+                </label>
+              </div>
+
+              <div class="quote-extra-services-head">
+                <div>
+                  <p class="eyebrow">SERVICIOS ADICIONALES</p>
+                  <p class="section-copy">Agrega hospedaje, traslados, tours, vuelos adicionales u otros servicios. “Vuelos” permanece como categoría extra.</p>
                 </div>
                 <button type="button" class="ghost-btn compact-btn" id="addQuoteItem">＋ Agregar concepto</button>
               </div>

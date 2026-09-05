@@ -354,3 +354,21 @@ CAMBIOS:
 - A 760 px o menos, toda captura pasa obligatoriamente a una columna.
 - A 440 px o menos se ajusta el padding para conservar ancho útil.
 - No requiere SQL ni cambios en Supabase.
+
+
+V2.2.2 · VUELOS FIJOS EN COTIZACIÓN
+====================================
+- Sección VUELOS fija dentro de Nueva cotización.
+- Vuelo de ida y vuelo de regreso separados.
+- Cada tramo permite fecha, aerolínea, número de vuelo y ruta/horario.
+- La fecha de ida toma por default la fecha de salida del viaje.
+- La fecha de regreso toma por default la fecha de regreso del viaje.
+- Si el asesor edita manualmente una fecha aérea, esa fecha queda independiente.
+- Importe total de vuelos se suma al costo interno.
+- El cliente continúa viendo únicamente el precio final, no el desglose.
+- Los vuelos fijos se muestran públicamente como "Vuelos del viaje" cuando se capturan datos de vuelo.
+- Debajo quedan Servicios adicionales.
+- La categoría "Vuelos" se conserva en Servicios adicionales para tramos, vuelos extra o cualquier caso especial.
+- Hospedaje conserva la imagen opcional.
+- Responsive revisado para evitar encimados.
+- No requiere SQL.
