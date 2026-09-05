@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Reserva de viaje · Velora App</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="reservation-public-body">
+  <main class="reservation-public-wrap">
+    <article class="reservation-public-doc">
+      <header class="reservation-public-hero">
+        <div class="reservation-public-brand">
+          <img id="rBrandLogo" src="assets/velora-logo.png" alt="Agencia de viajes">
+          <div class="reservation-public-brand-text" id="rBrandText">—</div>
+        </div>
+        <div class="reservation-public-meta">
+          <span>RESERVA PARA CONFIRMACIÓN</span>
+          <strong id="rCode">—</strong>
+          <small id="rAgency">—</small>
+          <div class="reservation-state-pill" id="rState">Pendiente de firma</div>
+        </div>
+      </header>
+
+      <section class="reservation-public-intro">
+        <p class="eyebrow">RESERVA A NOMBRE DE</p>
+        <h1 id="rClient">—</h1>
+        <p>Revisa cuidadosamente los datos de tu viaje. Tu firma confirma que la información es correcta y autoriza a la agencia a continuar con la reservación. <b>No se registrará ningún pago antes de tu firma.</b></p>
+      </section>
+
+      <section class="reservation-public-grid">
+        <div><small>DESTINO</small><strong id="rDestination">—</strong></div>
+        <div><small>SALIDA</small><strong id="rStart">—</strong></div>
+        <div><small>REGRESO</small><strong id="rEnd">—</strong></div>
+        <div><small>VIAJEROS</small><strong id="rTravelers">—</strong></div>
+      </section>
+
+      <section class="reservation-total-card">
+        <small>TOTAL DE LA RESERVA</small>
+        <strong id="rTotal">—</strong>
+        <span>MXN · Importe total aceptado en la cotización</span>
+      </section>
+
+      <section class="reservation-public-section" id="rServicesSection">
+        <div class="reservation-public-section-head">SERVICIOS CONSIDERADOS</div>
+        <div class="reservation-services" id="rServices"></div>
+      </section>
+
+      <section class="reservation-public-section" id="rPaymentSection">
+        <div class="reservation-public-section-head">FORMA DE PAGO INFORMADA</div>
+        <div class="reservation-payment-copy" id="rPayment">—</div>
+      </section>
+
+      <div class="reservation-signature-intro">
+        <strong>Importante:</strong> esta firma confirma la reserva y habilita a la agencia para comenzar a registrar los cobros correspondientes. La firma por sí sola no constituye un pago ni una liquidación.
+      </div>
+
+      <section class="signature-section document-signature" id="reservationSignatureSection">
+        <p class="eyebrow">CONFIRMACIÓN DEL CLIENTE</p>
+        <h2>Firma de la reserva</h2>
+        <p class="acceptance-text">Confirmo que revisé el nombre del titular, destino, fechas, número de viajeros, servicios y total de la reserva, y autorizo a la agencia a continuar con la contratación del viaje.</p>
+        <label class="check-line">
+          <input type="checkbox" id="reservationAcceptCheck">
+          <span>He revisado la información de esta reserva y confirmo que es correcta.</span>
+        </label>
+        <label class="field">
+          <span>Nombre de quien firma</span>
+          <input id="reservationSignerName" placeholder="Escribe tu nombre completo">
+        </label>
+        <div class="signature-pad-wrap">
+          <div class="signature-label">
+            <span>Firma aquí con el dedo o mouse</span>
+            <button type="button" class="text-btn" id="clearReservationSignature">Limpiar</button>
+          </div>
+          <canvas id="reservationSignaturePad"></canvas>
+        </div>
+        <button class="primary-btn full-btn" id="signReservationButton">Firmar y confirmar reserva</button>
+        <p class="privacy-copy">Se guardarán la firma, el nombre, la fecha y la hora de aceptación.</p>
+      </section>
+
+      <section class="signed-proof" id="reservationSignedProof">
+        <p class="eyebrow">RESERVA CONFIRMADA POR EL CLIENTE</p>
+        <div class="proof-grid">
+          <div><span>Firmado por</span><strong id="reservationProofName">—</strong></div>
+          <div><span>Fecha y hora</span><strong id="reservationProofDate">—</strong></div>
+        </div>
+        <div class="saved-signature"><img id="reservationProofSignature" alt="Firma del cliente"></div>
+        <button class="ghost-btn full-btn print-hide" onclick="window.print()">Imprimir / guardar PDF</button>
+      </section>
+    </article>
+  </main>
+
+  <div class="toast" id="toast"></div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-client.js"></script>
+  <script src="reservation.js"></script>
+</body>
+</html>

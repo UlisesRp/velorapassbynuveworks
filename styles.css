@@ -1072,3 +1072,258 @@ body.auth-ready .shell{visibility:visible;opacity:1;transition:opacity .22s ease
     width:100%;
   }
 }
+
+
+/* ===================== V2.1 · RESERVA PÚBLICA Y FIRMA ===================== */
+.reservation-public-body{
+  background:#f1ece8;
+}
+.reservation-public-wrap{
+  width:min(920px,calc(100% - 30px));
+  margin:28px auto 60px;
+}
+.reservation-public-doc{
+  overflow:hidden;
+  background:#fff;
+  border:1px solid #e1d6d2;
+  box-shadow:0 22px 65px rgba(42,31,35,.12);
+}
+.reservation-public-hero{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:22px;
+  padding:25px 30px;
+  border-bottom:4px solid #c9a749;
+  background:#084a3d;
+  color:#fff;
+}
+.reservation-public-brand img{
+  display:block;
+  width:155px;
+  max-height:80px;
+  object-fit:contain;
+  padding:10px;
+  border-radius:12px;
+  background:#fff;
+}
+.reservation-public-brand-text{
+  display:none;
+  font:700 26px "Playfair Display",serif;
+  letter-spacing:.05em;
+}
+.reservation-public-meta{
+  text-align:right;
+}
+.reservation-public-meta span{
+  display:block;
+  color:#e0c36b;
+  font-size:9px;
+  font-weight:900;
+  letter-spacing:.15em;
+}
+.reservation-public-meta strong{
+  display:block;
+  margin:5px 0;
+  font:700 22px "Playfair Display",serif;
+}
+.reservation-public-meta small{
+  color:#e9e3df;
+  font-size:10px;
+}
+.reservation-public-intro{
+  padding:28px 30px 18px;
+}
+.reservation-public-intro h1{
+  margin:2px 0 8px;
+  font:700 34px "Playfair Display",serif;
+}
+.reservation-public-intro p{
+  margin:0;
+  color:#746a6e;
+  line-height:1.55;
+}
+.reservation-public-grid{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:1px;
+  margin:0 30px 24px;
+  border:1px solid #dfd3cf;
+  background:#dfd3cf;
+}
+.reservation-public-grid>div{
+  padding:14px;
+  background:#fff;
+}
+.reservation-public-grid small,
+.reservation-total-card small{
+  display:block;
+  margin-bottom:5px;
+  color:#9a7b32;
+  font-size:8px;
+  font-weight:900;
+  letter-spacing:.1em;
+}
+.reservation-public-grid strong{
+  font-size:12px;
+}
+.reservation-total-card{
+  margin:0 30px 24px;
+  padding:22px 24px;
+  background:#084a3d;
+  color:#fff;
+  text-align:right;
+  border-bottom:4px solid #c9a749;
+}
+.reservation-total-card strong{
+  display:block;
+  font:700 34px "Playfair Display",serif;
+}
+.reservation-total-card span{
+  display:block;
+  margin-top:4px;
+  color:#ddd6cf;
+  font-size:10px;
+}
+.reservation-public-section{
+  margin:0 30px 24px;
+  border:1px solid #e0d4cf;
+}
+.reservation-public-section-head{
+  padding:11px 14px;
+  background:#f5efe8;
+  color:#604b38;
+  font-size:9px;
+  font-weight:900;
+  letter-spacing:.12em;
+}
+.reservation-services{
+  display:grid;
+}
+.reservation-service{
+  display:grid;
+  grid-template-columns:minmax(150px,.8fr) minmax(0,1.8fr);
+  gap:15px;
+  padding:14px;
+  border-top:1px solid #e8dfdb;
+}
+.reservation-service:first-child{
+  border-top:0;
+}
+.reservation-service small{
+  display:block;
+  color:#b28e36;
+  font-size:8px;
+  font-weight:800;
+}
+.reservation-service strong{
+  display:block;
+  margin-top:3px;
+  font-size:12px;
+}
+.reservation-service p{
+  margin:0;
+  color:#675e61;
+  font-size:11px;
+  line-height:1.5;
+}
+.reservation-service-photo{
+  grid-column:1/-1;
+}
+.reservation-service-photo img{
+  display:block;
+  width:100%;
+  max-height:350px;
+  object-fit:cover;
+}
+.reservation-payment-copy{
+  padding:15px;
+  color:#5e5558;
+  font-size:11px;
+  line-height:1.65;
+  white-space:pre-line;
+}
+.reservation-signature-intro{
+  margin:0 30px 20px;
+  padding:16px 18px;
+  border-left:4px solid #b28e36;
+  background:#fbf7ed;
+  color:#51484b;
+  font-size:11px;
+  line-height:1.6;
+}
+.reservation-public-doc .signature-section,
+.reservation-public-doc .signed-proof{
+  margin:0 30px 30px;
+}
+.reservation-public-doc .signature-section h2{
+  font-family:"Playfair Display",serif;
+}
+.reservation-public-doc .signed-proof{
+  border:1px solid #cfe1d5;
+  background:#f3faf5;
+}
+.reservation-state-pill{
+  display:inline-flex;
+  align-items:center;
+  gap:7px;
+  margin-top:8px;
+  padding:6px 10px;
+  border-radius:999px;
+  background:#f5ead1;
+  color:#765d1f;
+  font-size:9px;
+  font-weight:800;
+}
+.reservation-state-pill.signed{
+  background:#e4f3ea;
+  color:#286447;
+}
+@media(max-width:700px){
+  .reservation-public-wrap{
+    width:min(100% - 16px,920px);
+    margin:8px auto 35px;
+  }
+  .reservation-public-hero{
+    align-items:flex-start;
+    flex-direction:column;
+    padding:20px;
+  }
+  .reservation-public-meta{
+    text-align:left;
+  }
+  .reservation-public-intro{
+    padding:22px 20px 15px;
+  }
+  .reservation-public-intro h1{
+    font-size:28px;
+  }
+  .reservation-public-grid{
+    grid-template-columns:1fr 1fr;
+    margin:0 20px 20px;
+  }
+  .reservation-total-card,
+  .reservation-public-section,
+  .reservation-signature-intro,
+  .reservation-public-doc .signature-section,
+  .reservation-public-doc .signed-proof{
+    margin-left:20px;
+    margin-right:20px;
+  }
+  .reservation-service{
+    grid-template-columns:1fr;
+  }
+}
+@media print{
+  .reservation-public-body{
+    background:#fff;
+  }
+  .reservation-public-wrap{
+    width:100%;
+    margin:0;
+  }
+  .reservation-public-doc{
+    border:0;
+    box-shadow:none;
+  }
+}

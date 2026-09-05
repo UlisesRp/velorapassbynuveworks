@@ -197,3 +197,38 @@ V2.0.3 · HOTFIX VALIDACIÓN DE CORREO
 - Sigue aceptando N/A.
 - Sigue rechazando formatos inválidos.
 - No requiere SQL ni cambios en Supabase.
+
+
+V2.1 · FIRMA DE RESERVA ANTES DE COBRO
+======================================
+
+Nuevo flujo obligatorio:
+1. El agente envía cotización.
+2. El cliente acepta la cotización.
+3. Solo entonces puede convertirse en Reserva.
+4. La Reserva se crea en estado "Pendiente de firma".
+5. Velora App genera un enlace público de la Reserva.
+6. El cliente revisa y firma la Reserva.
+7. La firma cambia el estado a "Firmada" y habilita Registrar pago.
+8. Los pagos permanecen bloqueados antes de la firma, incluso a nivel Supabase.
+9. Una vez liquidada, se habilita Generar confirmación final.
+
+Cambios visuales:
+- Corregido el formulario de Reservas para que fechas, inputs y selects no se encimen.
+- Se amplió la columna de captura y se agregaron límites responsive.
+- El estatus ya no se cambia manualmente: lo controla el flujo real.
+- Las tarjetas muestran Pendiente de firma / Firmada / Liquidada.
+- Se muestra quién firmó y cuándo.
+- Botones nuevos: Copiar reserva y Abrir reserva.
+- Registrar pago queda deshabilitado hasta la firma.
+- Generar confirmación queda deshabilitado hasta firma + liquidación.
+
+Archivos nuevos:
+- reservation.html
+- reservation.js
+- SUPABASE_V2.1_FIRMA_RESERVA_ANTES_PAGO.sql
+
+IMPORTANTE:
+- Ejecutar el SQL V2.1 una sola vez.
+- Conservar el supabase-client.js real del proyecto.
+- La migración NO borra registros existentes.

@@ -11,8 +11,13 @@
   const paymentsFor=id=>state.payments.filter(p=>p.reservation_id===id);
   const paidFor=id=>paymentsFor(id).reduce((s,p)=>s+num(p.amount),0);
   const balanceFor=r=>Math.max(0,num(r.total)-paidFor(r.id));
-  const effectiveStatus=r=>r.status==="cancelled"?"cancelled":(num(r.total)>0 && balanceFor(r)<=0?"liquidated":r.status);
-  const statusLabel=s=>({pending:"Pendiente",confirmed:"Confirmada",liquidated:"Liquidada",cancelled:"Cancelada"}[s]||s);
+  const effectiveStatus=r=>{
+    if(r.status==="cancelled") return "cancelled";
+    if(num(r.total)>0 && balanceFor(r)<=0 && r.signed_at) return "liquidated";
+    if(r.signed_at) return "confirmed";
+    return "pending";
+  };
+  const statusLabel=s=>({pending:"Pendiente de firma",confirmed:"Firmada",liquidated:"Liquidada",cancelled:"Cancelada"}[s]||s);
   const statusClass=s=>s==="liquidated"?"ok":s==="cancelled"?"danger":s==="pending"?"warn":"agency";
 
   async function loadOps({silent=false}={}){
@@ -40,7 +45,15 @@
     const opts=state.clients.filter(c=>c.status!=="inactive").map(c=>`<option value="${c.id}">${esc(c.full_name)} · ${esc(c.agency)}</option>`).join("");
     const q=$("#quoteClientSelect");if(q){const val=q.value;q.innerHTML=`<option value="">Captura manual</option>${opts}`;q.value=val;}
     const r=$("#reservationClientSelect");if(r){const val=r.value;r.innerHTML=`<option value="">Captura manual</option>${opts}`;r.value=val;}
-    const pay=$("#paymentReservationSelect");if(pay){const val=pay.value;pay.innerHTML=`<option value="">Selecciona reserva</option>`+state.reservations.filter(x=>x.status!=="cancelled").map(x=>`<option value="${x.id}">${esc(x.code)} · ${esc(x.client_name)} · Saldo ${money(balanceFor(x))}</option>`).join("");pay.value=val;}
+    const pay=$("#paymentReservationSelect");if(pay){
+      const val=pay.value;
+      pay.innerHTML=`<option value="">Selecciona reserva firmada</option>`+
+        state.reservations
+          .filter(x=>x.status!=="cancelled" && Boolean(x.signed_at))
+          .map(x=>`<option value="${x.id}">${esc(x.code)} · ${esc(x.client_name)} · Saldo ${money(balanceFor(x))}</option>`)
+          .join("");
+      pay.value=val;
+    }
   }
 
   const clientForm=$("#clientForm");
@@ -67,36 +80,271 @@
   window.v2QuoteClient=id=>{const c=byId(state.clients,id);if(!c)return;switchView("newQuote");quoteForm.agency.value=c.agency;quoteForm.clientRecordId.value=c.id;quoteForm.client.value=c.full_name;quoteForm.phone.value=c.phone||"";quoteForm.email.value=c.email||"N/A";quoteForm.travelerCount.value=Math.max(1,num(c.adults)+num(c.minors));toast("Cliente cargado en cotización");};
   $("#quoteClientSelect")?.addEventListener("change",e=>{const c=byId(state.clients,e.target.value);if(!c)return;quoteForm.agency.value=c.agency;quoteForm.client.value=c.full_name;quoteForm.phone.value=c.phone||"";quoteForm.email.value=c.email||"N/A";quoteForm.travelerCount.value=Math.max(1,num(c.adults)+num(c.minors));});
 
+  function reservationLink(token){
+    const u=new URL("reservation.html",location.href);
+    u.searchParams.set("token",token);
+    return u.href;
+  }
+
+  function showReservationModal(r){
+    const link=reservationLink(r.public_token);
+    $("#modalType").textContent="RESERVA LISTA PARA FIRMA";
+    $("#modalFolio").textContent=r.code;
+    $("#modalText").textContent="Copia este enlace y envíaselo al cliente. El pago quedará bloqueado hasta que firme la reserva.";
+    $("#modalLink").value=link;
+    $("#openDocument").href=link;
+    $("#documentModal").classList.add("open");
+  }
+
+  window.v2OpenReservation=id=>{
+    const r=byId(state.reservations,id);
+    if(!r?.public_token){toast("La reserva todavía no tiene enlace público");return;}
+    window.open(reservationLink(r.public_token),"_blank","noopener");
+  };
+
+  window.v2CopyReservation=id=>{ 
+    const r=byId(state.reservations,id);
+    if(!r?.public_token){toast("La reserva todavía no tiene enlace público");return;}
+    const link=reservationLink(r.public_token);
+    navigator.clipboard?.writeText(link)
+      .then(()=>toast("Enlace de reserva copiado"))
+      .catch(()=>{
+        const input=$("#modalLink");
+        if(input){input.value=link;input.select();document.execCommand("copy");toast("Enlace de reserva copiado");}
+      });
+  };
+
   const reservationForm=$("#reservationForm");
   function resetReservation(){reservationForm?.reset();if(reservationForm){reservationForm.elements.id.value="";reservationForm.quoteId.value="";reservationForm.travelerCount.value=1;reservationForm.status.value="pending";}$("#reservationFormTitle").textContent="Nueva reserva";}
   $("#resetReservationForm")?.addEventListener("click",resetReservation);
   $("#reservationClientSelect")?.addEventListener("change",e=>{const c=byId(state.clients,e.target.value);if(!c)return;const f=reservationForm;f.agency.value=c.agency;f.clientName.value=c.full_name;f.phone.value=c.phone||"";f.email.value=c.email||"N/A";f.travelerCount.value=Math.max(1,num(c.adults)+num(c.minors));});
   reservationForm?.addEventListener("submit",async e=>{
     e.preventDefault();const f=reservationForm;
-    const payload={agency:f.agency.value,client_id:f.clientId.value||null,quote_id:f.quoteId.value||null,client_name:f.clientName.value.trim(),phone:f.phone.value.trim(),email:f.email.value.trim(),destination:f.destination.value.trim(),start_date:f.startDate.value,end_date:f.endDate.value,traveler_count:num(f.travelerCount.value)||1,total:num(f.total.value),status:f.status.value,requires_invoice:f.requiresInvoice.checked,notes:f.notes.value.trim(),updated_at:new Date().toISOString()};
-    const id=f.elements.id.value;let result=id?await db.from("reservations").update(payload).eq("id",id):await db.from("reservations").insert(payload);
-    if(result.error){toast(result.error.message);return;}toast(id?"Reserva actualizada":"Reserva creada");resetReservation();await loadOps({silent:true});
+    const id=f.elements.id.value;
+    const existing=id?byId(state.reservations,id):null;
+
+    const payload={
+      agency:f.agency.value,
+      client_id:f.clientId.value||null,
+      quote_id:f.quoteId.value||null,
+      client_name:f.clientName.value.trim(),
+      phone:f.phone.value.trim(),
+      email:f.email.value.trim(),
+      destination:f.destination.value.trim(),
+      start_date:f.startDate.value,
+      end_date:f.endDate.value,
+      traveler_count:num(f.travelerCount.value)||1,
+      total:num(f.total.value),
+      status:existing?.status||"pending",
+      requires_invoice:f.requiresInvoice.checked,
+      notes:f.notes.value.trim(),
+      updated_at:new Date().toISOString()
+    };
+
+    let result;
+    if(id){
+      result=await db.from("reservations").update(payload).eq("id",id).select("*").single();
+    }else{
+      result=await db.from("reservations").insert(payload).select("*").single();
+    }
+
+    if(result.error){toast(result.error.message);return;}
+
+    const saved=result.data;
+    toast(id?"Reserva actualizada":"Reserva creada · lista para enviar al cliente");
+    resetReservation();
+    await loadOps({silent:true});
+    if(!id && saved) showReservationModal(saved);
   });
   $("#searchReservations")?.addEventListener("input",renderReservations);
   function renderReservations(){
     const root=$("#reservationsList");if(!root)return;const q=$("#searchReservations").value.trim().toLowerCase();
     const rows=state.reservations.filter(r=>[r.code,r.client_name,r.destination,r.agency].join(" ").toLowerCase().includes(q));
-    root.innerHTML=rows.map(r=>{const paid=paidFor(r.id),bal=balanceFor(r),st=effectiveStatus(r);return `<article class="ops-card"><div><div class="ops-card-meta"><span class="ops-chip ${agencyClass(r.agency)}">${esc(r.agency)}</span><span class="ops-chip ${statusClass(st)}">${statusLabel(st)}</span>${r.requires_invoice?'<span class="ops-chip warn">Factura</span>':''}${r.quote_id?'<span class="ops-chip">Desde cotización</span>':''}</div><h3>${esc(r.code)} · ${esc(r.client_name)}</h3><p>${esc(r.destination)} · ${formatDate(r.start_date)} → ${formatDate(r.end_date)}</p><p>Creada por ${esc(creatorName(r))}</p><div class="reservation-finance"><div><small>Total</small><strong>${money(r.total)}</strong></div><div><small>Pagado</small><strong>${money(paid)}</strong></div><div><small>Saldo</small><strong>${money(bal)}</strong></div></div></div><div class="ops-card-actions"><button class="ghost-btn compact-btn" onclick="v2RegisterPayment('${r.id}')" ${st==='cancelled'?'disabled':''}>Registrar pago</button><button class="ghost-btn compact-btn" onclick="v2Confirmation('${r.id}')">${r.voucher_id?'Abrir confirmación':'Generar confirmación'}</button><button class="ghost-btn compact-btn" onclick="v2EditReservation('${r.id}')">Editar</button><button class="icon-btn danger-btn" onclick="v2DeleteReservation('${r.id}')">⌫</button></div></article>`}).join("");
+    root.innerHTML=rows.map(r=>{
+      const paid=paidFor(r.id),bal=balanceFor(r),st=effectiveStatus(r);
+      const signed=Boolean(r.signed_at);
+      const canPay=signed && st!=="cancelled" && bal>0;
+      const canConfirm=signed && st!=="cancelled" && bal<=0;
+      const signatureLine=signed
+        ? `<p class="reservation-signature-proof">✓ Firmada por ${esc(r.signer_name||r.client_name)} · ${shortDateTime(r.signed_at)}</p>`
+        : `<p class="reservation-signature-pending">Falta firma del cliente para habilitar cobros.</p>`;
+
+      return `<article class="ops-card reservation-card">
+        <div>
+          <div class="ops-card-meta">
+            <span class="ops-chip ${agencyClass(r.agency)}">${esc(r.agency)}</span>
+            <span class="ops-chip ${statusClass(st)}">${statusLabel(st)}</span>
+            ${r.requires_invoice?'<span class="ops-chip warn">Factura</span>':''}
+            ${r.quote_id?'<span class="ops-chip">Desde cotización</span>':''}
+          </div>
+          <h3>${esc(r.code)} · ${esc(r.client_name)}</h3>
+          <p>${esc(r.destination)} · ${formatDate(r.start_date)} → ${formatDate(r.end_date)}</p>
+          <p>Creada por ${esc(creatorName(r))}</p>
+          ${signatureLine}
+          <div class="reservation-finance">
+            <div><small>Total</small><strong>${money(r.total)}</strong></div>
+            <div><small>Pagado</small><strong>${money(paid)}</strong></div>
+            <div><small>Saldo</small><strong>${money(bal)}</strong></div>
+          </div>
+        </div>
+        <div class="ops-card-actions reservation-actions">
+          <button class="ghost-btn compact-btn" onclick="v2CopyReservation('${r.id}')" title="Copiar enlace para enviarlo al cliente">Copiar reserva</button>
+          <button class="ghost-btn compact-btn" onclick="v2OpenReservation('${r.id}')">Abrir reserva</button>
+          <button class="ghost-btn compact-btn" onclick="v2RegisterPayment('${r.id}')" ${canPay?"":'disabled title="El cliente debe firmar la reserva antes de registrar pagos"'}>Registrar pago</button>
+          <button class="ghost-btn compact-btn" onclick="v2Confirmation('${r.id}')" ${r.voucher_id||canConfirm?"":'disabled title="La confirmación final se genera después de la firma y liquidación"'}>${r.voucher_id?'Abrir confirmación':'Generar confirmación'}</button>
+          <button class="ghost-btn compact-btn" onclick="v2EditReservation('${r.id}')">Editar</button>
+          <button class="icon-btn danger-btn" onclick="v2DeleteReservation('${r.id}')">⌫</button>
+        </div>
+      </article>`;
+    }).join("");
     $("#reservationsEmpty").hidden=rows.length>0;
   }
   window.v2EditReservation=id=>{const r=byId(state.reservations,id);if(!r)return;switchView("reservations");const f=reservationForm;f.elements.id.value=r.id;f.quoteId.value=r.quote_id||"";f.agency.value=r.agency;f.clientId.value=r.client_id||"";f.clientName.value=r.client_name;f.phone.value=r.phone||"";f.email.value=r.email||"";f.destination.value=r.destination;f.startDate.value=r.start_date;f.endDate.value=r.end_date;f.travelerCount.value=r.traveler_count||1;f.total.value=r.total;f.status.value=r.status;f.requiresInvoice.checked=!!r.requires_invoice;f.notes.value=r.notes||"";$("#reservationFormTitle").textContent=`Editar ${r.code}`;window.scrollTo({top:0,behavior:"smooth"});};
   window.v2DeleteReservation=async id=>{const r=byId(state.reservations,id);if(!r||!confirm(`¿Eliminar la reserva ${r.code}? Los pagos ligados también se eliminarán.`))return;const {error}=await db.from("reservations").delete().eq("id",id);if(error){toast(error.message);return;}toast("Reserva eliminada");await loadOps({silent:true});};
-  window.v2RegisterPayment=id=>{switchView("payments");$("#paymentReservationSelect").value=id;$("#paymentForm").amount.focus();};
-  window.v2Confirmation=async id=>{const r=byId(state.reservations,id);if(!r)return;if(r.voucher_id){const {data,error}=await db.from("vouchers").select("public_token").eq("id",r.voucher_id).single();if(error){toast("No se pudo abrir la confirmación");return;}window.open(voucherLink(data.public_token),"_blank","noopener");return;}if(balanceFor(r)>0){toast(`La reserva aún tiene saldo pendiente de ${money(balanceFor(r))}`);return;}switchView("newVoucher");const f=voucherForm;f.sourceReservationId.value=r.id;f.sourceReservationCode.value=r.code;f.agency.value=r.agency;f.passenger.value=r.client_name;f.passengerCount.value=r.traveler_count||1;f.phone.value=r.phone||"";f.email.value=r.email||"N/A";f.destination.value=r.destination;f.startDate.value=r.start_date;constrainSameMonth(f);f.endDate.value=r.end_date;f.generalLocator.value=r.code;const qp=r.payload||{};f.tripType.value=qp.tripType||"Vacaciones";f.notes.value=r.notes||qp.notes||"";f.advisor.value=qp.advisor||"Velora Travel";f.advisorWhatsapp.value=qp.advisorWhatsapp||"55 1900 0905";f.advisorEmail.value=qp.advisorEmail||"hola@veloratravel.com";updateDuration(f);updateVoucherComputed();toast("Reserva liquidada cargada en confirmación");};
+  window.v2RegisterPayment=id=>{
+    const r=byId(state.reservations,id);
+    if(!r)return;
+    if(!r.signed_at){toast("Primero el cliente debe firmar la reserva");return;}
+    if(r.status==="cancelled"){toast("La reserva está cancelada");return;}
+    switchView("payments");
+    $("#paymentReservationSelect").value=id;
+    $("#paymentForm").amount.focus();
+  };
+  window.v2Confirmation=async id=>{
+    const r=byId(state.reservations,id);
+    if(!r)return;
+    if(r.voucher_id){
+      const {data,error}=await db.from("vouchers").select("public_token").eq("id",r.voucher_id).single();
+      if(error){toast("No se pudo abrir la confirmación");return;}
+      window.open(voucherLink(data.public_token),"_blank","noopener");
+      return;
+    }
+    if(!r.signed_at){toast("La reserva todavía no ha sido firmada por el cliente");return;}
+    if(balanceFor(r)>0){toast(`La reserva aún tiene saldo pendiente de ${money(balanceFor(r))}`);return;}
+
+    switchView("newVoucher");
+    const f=voucherForm;
+    f.sourceReservationId.value=r.id;
+    f.sourceReservationCode.value=r.code;
+    f.agency.value=r.agency;
+    f.passenger.value=r.client_name;
+    f.passengerCount.value=r.traveler_count||1;
+    f.phone.value=r.phone||"";
+    f.email.value=r.email||"N/A";
+    f.destination.value=r.destination;
+    f.startDate.value=r.start_date;
+    constrainSameMonth(f);
+    f.endDate.value=r.end_date;
+    f.generalLocator.value=r.code;
+
+    const qp=r.payload||{};
+    f.tripType.value=qp.tripType||"Vacaciones";
+    f.notes.value=r.notes||qp.notes||"";
+    f.advisor.value=qp.advisor||"Velora Travel";
+    f.advisorWhatsapp.value=qp.advisorWhatsapp||"55 1900 0905";
+    f.advisorEmail.value=qp.advisorEmail||"hola@veloratravel.com";
+    updateDuration(f);
+    updateVoucherComputed();
+    toast("Reserva firmada y liquidada cargada en confirmación final");
+  };
 
   // Override legacy quote -> voucher flow: now quote -> reservation.
-  window.convertQuoteToVoucher=async id=>{const q=quoteCache.find(x=>x.id===id);if(!q){toast("No se encontró la cotización");return;}if(q.convertedReservationId){toast("Esta cotización ya tiene reserva");switchView("reservations");return;}const payload={agency:agencyOf(q.agency),client_id:q.clientRecordId||null,quote_id:q.id,client_name:q.client,phone:q.phone||"",email:q.email||"",destination:q.destination,start_date:q.startDate,end_date:q.endDate,traveler_count:num(q.travelerCount)||1,total:num(q.total),status:(q.acceptedAt||q.status==="accepted")?"confirmed":"pending",requires_invoice:false,notes:q.notes||"",payload:{tripType:q.tripType||"",advisor:q.advisor||"",advisorWhatsapp:q.advisorWhatsapp||"",advisorEmail:q.advisorEmail||"",quoteFolio:q.folio}};const {data:res,error}=await db.from("reservations").insert(payload).select("*").single();if(error){toast(error.message);return;}const {error:updateError}=await db.from("quotes").update({status:"converted",converted_reservation_id:res.id}).eq("id",q.id);if(updateError)console.error(updateError);toast("Cotización movida a Reserva");await Promise.all([loadSharedData({silent:true}),loadOps({silent:true})]);switchView("reservations");};
+  window.convertQuoteToVoucher=async id=>{
+    const q=quoteCache.find(x=>x.id===id);
+    if(!q){toast("No se encontró la cotización");return;}
+    if(q.convertedReservationId){toast("Esta cotización ya tiene reserva");switchView("reservations");return;}
+    if(!(q.acceptedAt||q.status==="accepted")){
+      toast("El cliente debe aceptar la cotización antes de crear la reserva");
+      return;
+    }
+
+    const publicServices=(q.items||[]).map(item=>({
+      category:item.category||"Servicio",
+      concept:item.concept||"",
+      description:item.description||"",
+      hotelImage:item.hotelImage||""
+    }));
+
+    const payload={
+      agency:agencyOf(q.agency),
+      client_id:q.clientRecordId||null,
+      quote_id:q.id,
+      client_name:q.client,
+      phone:q.phone||"",
+      email:q.email||"",
+      destination:q.destination,
+      start_date:q.startDate,
+      end_date:q.endDate,
+      traveler_count:num(q.travelerCount)||1,
+      total:num(q.total),
+      status:"pending",
+      requires_invoice:false,
+      notes:q.notes||"",
+      payload:{
+        tripType:q.tripType||"",
+        advisor:q.advisor||"",
+        advisorWhatsapp:q.advisorWhatsapp||"",
+        advisorEmail:q.advisorEmail||"",
+        quoteFolio:q.folio,
+        quoteAcceptedAt:q.acceptedAt||null,
+        services:publicServices,
+        msiEnabled:Boolean(q.msiEnabled),
+        paymentMethods:q.paymentMethods||"",
+        includes:q.includes||"",
+        excludes:q.excludes||""
+      }
+    };
+
+    const {data:res,error}=await db.from("reservations").insert(payload).select("*").single();
+    if(error){toast(error.message);return;}
+
+    const {error:updateError}=await db.from("quotes")
+      .update({status:"converted",converted_reservation_id:res.id})
+      .eq("id",q.id);
+    if(updateError)console.error(updateError);
+
+    toast("Reserva creada · ahora envíala al cliente para firma");
+    await Promise.all([loadSharedData({silent:true}),loadOps({silent:true})]);
+    switchView("reservations");
+    if(res) setTimeout(()=>showReservationModal(res),120);
+  };
 
   const paymentForm=$("#paymentForm");if(paymentForm)paymentForm.paidAt.value=today();
-  paymentForm?.addEventListener("submit",async e=>{e.preventDefault();const f=paymentForm,r=byId(state.reservations,f.reservationId.value);if(!r)return;const amount=num(f.amount.value);if(amount<=0)return;const {error}=await db.from("payments").insert({reservation_id:r.id,amount,method:f.method.value,paid_at:f.paidAt.value,reference:f.reference.value.trim(),notes:f.notes.value.trim()});if(error){toast(error.message);return;}const newPaid=paidFor(r.id)+amount;const nextStatus=num(r.total)>0&&newPaid>=num(r.total)?"liquidated":(r.status==="pending"?"confirmed":r.status);await db.from("reservations").update({status:nextStatus,updated_at:new Date().toISOString()}).eq("id",r.id);toast(nextStatus==="liquidated"?"Pago registrado · Reserva liquidada":"Pago registrado");f.reset();f.paidAt.value=today();await loadOps({silent:true});});
+  paymentForm?.addEventListener("submit",async e=>{
+    e.preventDefault();
+    const f=paymentForm,r=byId(state.reservations,f.reservationId.value);
+    if(!r)return;
+    if(!r.signed_at){toast("No se puede cobrar: la reserva aún no está firmada");return;}
+    if(r.status==="cancelled"){toast("No se puede cobrar una reserva cancelada");return;}
+
+    const amount=num(f.amount.value);
+    if(amount<=0)return;
+
+    const {error}=await db.from("payments").insert({
+      reservation_id:r.id,
+      amount,
+      method:f.method.value,
+      paid_at:f.paidAt.value,
+      reference:f.reference.value.trim(),
+      notes:f.notes.value.trim()
+    });
+
+    if(error){toast(error.message);return;}
+
+    const newPaid=paidFor(r.id)+amount;
+    const nextStatus=num(r.total)>0&&newPaid>=num(r.total)?"liquidated":"confirmed";
+    await db.from("reservations")
+      .update({status:nextStatus,updated_at:new Date().toISOString()})
+      .eq("id",r.id);
+
+    toast(nextStatus==="liquidated"?"Pago registrado · Reserva liquidada":"Pago registrado");
+    f.reset();
+    f.paidAt.value=today();
+    await loadOps({silent:true});
+  });
   $("#searchPayments")?.addEventListener("input",renderPayments);
   function renderPayments(){const body=$("#paymentsTable");if(!body)return;const q=$("#searchPayments").value.trim().toLowerCase();const rows=state.payments.filter(p=>{const r=byId(state.reservations,p.reservation_id);return [r?.code,r?.client_name,p.reference,p.method].join(" ").toLowerCase().includes(q)});body.innerHTML=rows.map(p=>{const r=byId(state.reservations,p.reservation_id);return `<tr><td>${formatDate(p.paid_at)}</td><td><strong>${esc(r?.code||"—")}</strong></td><td>${esc(r?.client_name||"—")}</td><td>${esc(p.method||"—")}</td><td><strong>${money(p.amount)}</strong></td><td>${esc(creatorName(p))}</td><td><button class="icon-btn danger-btn" onclick="v2DeletePayment('${p.id}')">⌫</button></td></tr>`}).join("");$("#paymentsEmpty").hidden=rows.length>0;}
-  window.v2DeletePayment=async id=>{const p=byId(state.payments,id);if(!p||!confirm("¿Eliminar este pago? El saldo de la reserva se recalculará."))return;const {error}=await db.from("payments").delete().eq("id",id);if(error){toast(error.message);return;}const r=byId(state.reservations,p.reservation_id);const remaining=paymentsFor(r.id).filter(x=>x.id!==id).reduce((s,x)=>s+num(x.amount),0);const status=num(r.total)>0&&remaining>=num(r.total)?"liquidated":(remaining>0?"confirmed":"pending");await db.from("reservations").update({status,updated_at:new Date().toISOString()}).eq("id",r.id);toast("Pago eliminado");await loadOps({silent:true});};
+  window.v2DeletePayment=async id=>{const p=byId(state.payments,id);if(!p||!confirm("¿Eliminar este pago? El saldo de la reserva se recalculará."))return;const {error}=await db.from("payments").delete().eq("id",id);if(error){toast(error.message);return;}const r=byId(state.reservations,p.reservation_id);const remaining=paymentsFor(r.id).filter(x=>x.id!==id).reduce((s,x)=>s+num(x.amount),0);const status=num(r.total)>0&&remaining>=num(r.total)?"liquidated":(r.signed_at?"confirmed":"pending");await db.from("reservations").update({status,updated_at:new Date().toISOString()}).eq("id",r.id);toast("Pago eliminado");await loadOps({silent:true});};
 
   const eventForm=$("#eventForm");if(eventForm)eventForm.eventDate.value=today();
   eventForm?.addEventListener("submit",async e=>{e.preventDefault();const f=eventForm;const {error}=await db.from("events").insert({agency:f.agency.value,title:f.title.value.trim(),event_date:f.eventDate.value,event_time:f.eventTime.value||null,event_type:f.eventType.value,client_name:f.clientName.value.trim(),notes:f.notes.value.trim()});if(error){toast(error.message);return;}toast("Evento guardado");f.reset();f.eventDate.value=today();await loadOps({silent:true});});

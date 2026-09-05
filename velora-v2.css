@@ -7,3 +7,94 @@
 .reports-panel{min-height:520px}.reports-head{align-items:end}.month-field{max-width:180px}.report-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:13px}.report-card{padding:18px;border:1px solid #e3d9d6;border-radius:15px;background:#fff}.report-card span{display:block;color:#7b4658;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.08em}.report-card strong{display:block;margin:7px 0 3px;font:700 25px "Playfair Display",serif}.report-card small{font-size:9px;color:#898084}.report-agency-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:18px}.report-agency-card{padding:18px;border-radius:15px;background:#faf7f5;border:1px solid #e5dcd8}.agency-report-row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #ebe3df;font-size:11px}.agency-report-row:last-child{border-bottom:0}.agency-report-row strong{font-weight:800}
 @media(max-width:1180px){.ops-stats-grid{grid-template-columns:repeat(2,1fr)}.ops-dashboard-grid,.ops-two-col,.calendar-layout{grid-template-columns:1fr}.ops-form{position:static}.report-grid{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:720px){.ops-stats-grid,.report-grid,.report-agency-grid{grid-template-columns:1fr}.ops-card{grid-template-columns:1fr}.ops-card-actions{justify-content:flex-start;max-width:none}.reservation-finance{grid-template-columns:1fr}.calendar-day{min-height:85px;padding:5px}.calendar-entry{font-size:7px}.calendar-weekdays span{font-size:8px}}
+
+
+/* ===================== V2.1 · RESERVA FIRMADA ANTES DE COBRO ===================== */
+.reservations-layout{
+  grid-template-columns:minmax(420px,.92fr) minmax(0,1.45fr);
+}
+.reservations-layout>*{
+  min-width:0;
+}
+.reservations-layout .fields-grid{
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:14px;
+}
+.reservations-layout .field,
+.reservations-layout .service-option{
+  min-width:0;
+}
+.reservations-layout input,
+.reservations-layout select,
+.reservations-layout textarea{
+  width:100%;
+  max-width:100%;
+  min-width:0;
+  box-sizing:border-box;
+}
+.reservations-layout input[type="date"]{
+  font-size:13px;
+  padding-left:10px;
+  padding-right:8px;
+}
+.reservation-flow-box{
+  display:grid;
+  gap:4px;
+  padding:13px 14px;
+  border:1px solid #dfd2d6;
+  border-radius:13px;
+  background:#fbf7f8;
+}
+.reservation-flow-box>span{
+  color:#9a6477;
+  font-size:8px;
+  font-weight:900;
+  letter-spacing:.12em;
+}
+.reservation-flow-box strong{
+  color:#3c3035;
+  font-size:11px;
+}
+.reservation-flow-box small{
+  color:#877b80;
+  font-size:9px;
+  line-height:1.4;
+}
+.reservation-card{
+  align-items:start;
+}
+.reservation-actions{
+  max-width:330px;
+}
+.reservation-signature-proof{
+  margin-top:6px!important;
+  color:#2d7553!important;
+  font-weight:700;
+}
+.reservation-signature-pending{
+  margin-top:6px!important;
+  color:#9a6b35!important;
+  font-weight:700;
+}
+.reservation-actions button:disabled{
+  opacity:.48;
+  cursor:not-allowed;
+  background:#f6f2f1;
+}
+
+@media(max-width:1260px){
+  .reservations-layout{
+    grid-template-columns:1fr;
+  }
+  .reservations-layout .ops-form{
+    position:static;
+  }
+}
+@media(max-width:720px){
+  .reservations-layout .fields-grid{
+    grid-template-columns:1fr;
+  }
+  .reservations-layout .span-2{
+    grid-column:span 1;
+  }
+}

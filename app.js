@@ -262,9 +262,12 @@ function quoteCard(q,compact=false){
 
   let reserveButton="";
   if(!compact){
+    const accepted=Boolean(q.acceptedAt||q.status==="accepted");
     reserveButton=(q.convertedReservationId || q.convertedVoucherId || q.status==="converted")
       ? `<button class="icon-btn convert-btn converted" type="button" disabled title="Esta cotización ya fue convertida a reserva">Reserva creada</button>`
-      : `<button class="icon-btn convert-btn ${q.acceptedAt||q.status==="accepted"?"accepted-ready":""}" title="Mover datos a reserva" onclick="convertQuoteToVoucher('${q.id}')">→ Reserva</button>`;
+      : accepted
+        ? `<button class="icon-btn convert-btn accepted-ready" title="Crear reserva a partir de la cotización aceptada" onclick="convertQuoteToVoucher('${q.id}')">→ Reserva</button>`
+        : `<button class="icon-btn convert-btn" type="button" disabled title="El cliente debe aceptar primero la cotización">Esperando aceptación</button>`;
   }
 
   const actions=compact

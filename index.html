@@ -500,8 +500,13 @@
               <label class="field"><span>Regreso *</span><input required type="date" name="endDate"></label>
               <label class="field"><span>Pasajeros</span><input type="number" min="1" name="travelerCount" value="1"></label>
               <label class="field"><span>Total de reserva *</span><input required type="number" min="0" step="0.01" name="total"></label>
-              <label class="field"><span>Estatus</span><select name="status"><option value="pending">Pendiente</option><option value="confirmed">Confirmada</option><option value="liquidated">Liquidada</option><option value="cancelled">Cancelada</option></select></label>
-              <label class="service-option invoice-option"><input type="checkbox" name="requiresInvoice" value="1"><span><b>Requiere factura</b><small>Marcar si el cliente la solicita</small></span></label>
+              <input type="hidden" name="status" value="pending">
+              <div class="reservation-flow-box span-2">
+                <span>FLUJO DE LA RESERVA</span>
+                <strong>Primero firma el cliente. Después se habilitan los pagos.</strong>
+                <small>El estatus cambia automáticamente: Pendiente de firma → Firmada → Liquidada.</small>
+              </div>
+              <label class="service-option invoice-option span-2"><input type="checkbox" name="requiresInvoice" value="1"><span><b>Requiere factura</b><small>Marcar si el cliente la solicita</small></span></label>
               <label class="field span-2"><span>Notas internas</span><textarea name="notes" rows="4"></textarea></label>
             </div>
             <div class="form-actions"><button type="submit" class="primary-btn">Guardar reserva</button></div>
@@ -528,7 +533,7 @@
               <label class="field span-2"><span>Notas</span><textarea name="notes" rows="3"></textarea></label>
             </div>
             <div class="form-actions"><button type="submit" class="primary-btn">Registrar pago</button></div>
-            <div class="mini-note">Este módulo registra pagos de las reservas de tus clientes. No tiene relación con membresías o cobros de Velora App.</div>
+            <div class="mini-note"><strong>Firma obligatoria:</strong> Velora App solo permite registrar pagos cuando el cliente ya firmó su reserva. Las reservas pendientes de firma no aparecen disponibles para cobro.</div>
           </form>
           <div class="panel">
             <div class="panel-head vouchers-head"><div><p class="eyebrow">HISTORIAL</p><h2>Pagos</h2></div><div class="search"><span>⌕</span><input id="searchPayments" placeholder="Buscar cliente, reserva o referencia"></div></div>
