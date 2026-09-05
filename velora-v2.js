@@ -77,8 +77,8 @@
   }
   window.v2EditClient=id=>{const c=byId(state.clients,id);if(!c)return;switchView("clients");const f=clientForm;f.elements.id.value=c.id;f.agency.value=c.agency;f.fullName.value=c.full_name;f.phone.value=c.phone||"";f.email.value=c.email||"";f.adults.value=c.adults??1;f.minors.value=c.minors??0;f.notes.value=c.notes||"";f.status.value=c.status||"active";$("#clientFormTitle").textContent="Editar cliente";window.scrollTo({top:0,behavior:"smooth"});};
   window.v2DeleteClient=async id=>{const c=byId(state.clients,id);if(!c||!confirm(`¿Eliminar a ${c.full_name} de la base de clientes?`))return;const {error}=await db.from("clients").delete().eq("id",id);if(error){toast(error.message);return;}toast("Cliente eliminado");await loadOps({silent:true});};
-  window.v2QuoteClient=id=>{const c=byId(state.clients,id);if(!c)return;switchView("newQuote");quoteForm.agency.value=c.agency;quoteForm.clientRecordId.value=c.id;quoteForm.client.value=c.full_name;quoteForm.phone.value=c.phone||"";quoteForm.email.value=c.email||"N/A";quoteForm.travelerCount.value=Math.max(1,num(c.adults)+num(c.minors));toast("Cliente cargado en cotización");};
-  $("#quoteClientSelect")?.addEventListener("change",e=>{const c=byId(state.clients,e.target.value);if(!c)return;quoteForm.agency.value=c.agency;quoteForm.client.value=c.full_name;quoteForm.phone.value=c.phone||"";quoteForm.email.value=c.email||"N/A";quoteForm.travelerCount.value=Math.max(1,num(c.adults)+num(c.minors));});
+  window.v2QuoteClient=id=>{const c=byId(state.clients,id);if(!c)return;switchView("newQuote");quoteForm.agency.value=c.agency;quoteForm.clientRecordId.value=c.id;quoteForm.client.value=c.full_name;quoteForm.phone.value=c.phone||"";quoteForm.email.value=c.email||"N/A";quoteForm.adults.value=Math.max(1,num(c.adults)||1);quoteForm.minors.value=Math.max(0,num(c.minors));syncQuoteTravelerCount();toast("Cliente cargado en cotización");};
+  $("#quoteClientSelect")?.addEventListener("change",e=>{const c=byId(state.clients,e.target.value);if(!c)return;quoteForm.agency.value=c.agency;quoteForm.client.value=c.full_name;quoteForm.phone.value=c.phone||"";quoteForm.email.value=c.email||"N/A";quoteForm.adults.value=Math.max(1,num(c.adults)||1);quoteForm.minors.value=Math.max(0,num(c.minors));syncQuoteTravelerCount();});
 
   function reservationLink(token){
     const u=new URL("reservation.html",location.href);
@@ -86,7 +86,54 @@
     return u.href;
   }
 
+  function reservationPassengerCounts(r){
+    const payload=r?.payload||{};
+    const adults=Math.max(1,num(payload.adults ?? r?.adults ?? 1));
+    const minors=Math.max(0,num(payload.minors ?? r?.minors ?? 0));
+    return {adults,minors,total:adults+minors};
+  }
+
+  function normalizePassengerList(list){
+    return Array.isArray(list)
+      ? list.map(p=>({
+          type:p?.type==="minor"?"minor":"adult",
+          name:String(p?.name||"").trim(),
+          age:Number.isFinite(Number(p?.age))?Number(p.age):null
+        }))
+      : [];
+  }
+
+  function reservationPassengersComplete(r){
+    if(!r)return false;
+    const {adults,minors,total}=reservationPassengerCounts(r);
+    const passengers=normalizePassengerList(r.payload?.passengers);
+    if(passengers.length!==total)return false;
+
+    const adultRows=passengers.filter(p=>p.type==="adult");
+    const minorRows=passengers.filter(p=>p.type==="minor");
+    if(adultRows.length!==adults || minorRows.length!==minors)return false;
+
+    return passengers.every(p=>{
+      if(p.name.length<3 || p.age===null)return false;
+      if(p.type==="minor")return p.age>=0 && p.age<=12;
+      return p.age>=13 && p.age<=120;
+    });
+  }
+
+  function reservationSendGuard(r){
+    if(!r?.public_token){
+      toast("La reserva todavía no tiene enlace público");
+      return false;
+    }
+    if(!reservationPassengersComplete(r)){
+      toast("Completa nombre y edad de todos los pasajeros antes de enviar la reserva");
+      return false;
+    }
+    return true;
+  }
+
   function showReservationModal(r){
+    if(!reservationSendGuard(r))return;
     const link=reservationLink(r.public_token);
     $("#modalType").textContent="RESERVA LISTA PARA FIRMA";
     $("#modalFolio").textContent=r.code;
@@ -98,13 +145,13 @@
 
   window.v2OpenReservation=id=>{
     const r=byId(state.reservations,id);
-    if(!r?.public_token){toast("La reserva todavía no tiene enlace público");return;}
+    if(!reservationSendGuard(r))return;
     window.open(reservationLink(r.public_token),"_blank","noopener");
   };
 
   window.v2CopyReservation=id=>{ 
     const r=byId(state.reservations,id);
-    if(!r?.public_token){toast("La reserva todavía no tiene enlace público");return;}
+    if(!reservationSendGuard(r))return;
     const link=reservationLink(r.public_token);
     navigator.clipboard?.writeText(link)
       .then(()=>toast("Enlace de reserva copiado"))
@@ -115,13 +162,114 @@
   };
 
   const reservationForm=$("#reservationForm");
-  function resetReservation(){reservationForm?.reset();if(reservationForm){reservationForm.elements.id.value="";reservationForm.quoteId.value="";reservationForm.travelerCount.value=1;reservationForm.status.value="pending";}$("#reservationFormTitle").textContent="Nueva reserva";}
+
+  function readReservationPassengerForm(){
+    return [...$("#reservationPassengersList").querySelectorAll(".reservation-passenger-row")].map(row=>({
+      type:row.dataset.type==="minor"?"minor":"adult",
+      name:row.querySelector('[name="passengerName"]').value.trim(),
+      age:row.querySelector('[name="passengerAge"]').value===""?null:Number(row.querySelector('[name="passengerAge"]').value)
+    }));
+  }
+
+  function passengerFormComplete(){
+    const passengers=readReservationPassengerForm();
+    const adults=Math.max(1,num(reservationForm.adults.value)||1);
+    const minors=Math.max(0,num(reservationForm.minors.value));
+    if(passengers.length!==adults+minors)return false;
+    return passengers.every(p=>{
+      if(p.name.length<3 || p.age===null)return false;
+      return p.type==="minor" ? p.age>=0&&p.age<=12 : p.age>=13&&p.age<=120;
+    });
+  }
+
+  function updatePassengerFormStatus(){
+    const badge=$("#reservationPassengersStatus");
+    if(!badge)return;
+    const complete=passengerFormComplete();
+    badge.textContent=complete?"Completo":"Pendiente";
+    badge.classList.toggle("complete",complete);
+  }
+
+  function renderReservationPassengerRows(saved=[]){
+    if(!reservationForm)return;
+    const root=$("#reservationPassengersList");
+    const adults=Math.max(1,num(reservationForm.adults.value)||1);
+    const minors=Math.max(0,num(reservationForm.minors.value));
+    reservationForm.travelerCount.value=adults+minors;
+
+    const existing=normalizePassengerList(saved.length?saved:readReservationPassengerForm());
+    const adultsSaved=existing.filter(p=>p.type==="adult");
+    const minorsSaved=existing.filter(p=>p.type==="minor");
+    const rows=[];
+
+    for(let i=0;i<adults;i++){
+      const p=adultsSaved[i]||{};
+      rows.push(`
+        <div class="reservation-passenger-row" data-type="adult">
+          <div class="reservation-passenger-label"><span>ADULTO</span><strong>Pasajero ${i+1}</strong></div>
+          <label class="field"><span>Nombre completo *</span><input name="passengerName" value="${esc(p.name||"")}" placeholder="Nombre como aparece en identificación"></label>
+          <label class="field"><span>Edad *</span><input name="passengerAge" type="number" min="13" max="120" value="${p.age??""}" placeholder="Edad"></label>
+        </div>`);
+    }
+
+    for(let i=0;i<minors;i++){
+      const p=minorsSaved[i]||{};
+      rows.push(`
+        <div class="reservation-passenger-row minor" data-type="minor">
+          <div class="reservation-passenger-label"><span>MENOR</span><strong>Menor ${i+1}</strong></div>
+          <label class="field"><span>Nombre completo *</span><input name="passengerName" value="${esc(p.name||"")}" placeholder="Nombre completo"></label>
+          <label class="field"><span>Edad *</span><input name="passengerAge" type="number" min="0" max="12" value="${p.age??""}" placeholder="0 a 12"></label>
+        </div>`);
+    }
+
+    root.innerHTML=rows.join("");
+    root.querySelectorAll("input").forEach(input=>input.addEventListener("input",updatePassengerFormStatus));
+    updatePassengerFormStatus();
+  }
+
+  function resetReservation(){
+    reservationForm?.reset();
+    if(reservationForm){
+      reservationForm.elements.id.value="";
+      reservationForm.quoteId.value="";
+      reservationForm.adults.value=1;
+      reservationForm.minors.value=0;
+      reservationForm.travelerCount.value=1;
+      reservationForm.status.value="pending";
+      renderReservationPassengerRows([]);
+    }
+    $("#reservationFormTitle").textContent="Nueva reserva";
+  }
+
   $("#resetReservationForm")?.addEventListener("click",resetReservation);
-  $("#reservationClientSelect")?.addEventListener("change",e=>{const c=byId(state.clients,e.target.value);if(!c)return;const f=reservationForm;f.agency.value=c.agency;f.clientName.value=c.full_name;f.phone.value=c.phone||"";f.email.value=c.email||"N/A";f.travelerCount.value=Math.max(1,num(c.adults)+num(c.minors));});
+
+  ["input","change"].forEach(evt=>{
+    reservationForm?.adults.addEventListener(evt,()=>renderReservationPassengerRows());
+    reservationForm?.minors.addEventListener(evt,()=>renderReservationPassengerRows());
+  });
+
+  $("#reservationClientSelect")?.addEventListener("change",e=>{
+    const c=byId(state.clients,e.target.value);if(!c)return;
+    const f=reservationForm;
+    f.agency.value=c.agency;
+    f.clientName.value=c.full_name;
+    f.phone.value=c.phone||"";
+    f.email.value=c.email||"N/A";
+    f.adults.value=Math.max(1,num(c.adults)||1);
+    f.minors.value=Math.max(0,num(c.minors));
+    renderReservationPassengerRows([]);
+  });
+
+  renderReservationPassengerRows([]);
   reservationForm?.addEventListener("submit",async e=>{
     e.preventDefault();const f=reservationForm;
     const id=f.elements.id.value;
     const existing=id?byId(state.reservations,id):null;
+
+    const passengers=readReservationPassengerForm();
+    const adults=Math.max(1,num(f.adults.value)||1);
+    const minors=Math.max(0,num(f.minors.value));
+    f.travelerCount.value=adults+minors;
 
     const payload={
       agency:f.agency.value,
@@ -133,11 +281,17 @@
       destination:f.destination.value.trim(),
       start_date:f.startDate.value,
       end_date:f.endDate.value,
-      traveler_count:num(f.travelerCount.value)||1,
+      traveler_count:adults+minors,
       total:num(f.total.value),
       status:existing?.status||"pending",
       requires_invoice:f.requiresInvoice.checked,
       notes:f.notes.value.trim(),
+      payload:{
+        ...(existing?.payload||{}),
+        adults,
+        minors,
+        passengers
+      },
       updated_at:new Date().toISOString()
     };
 
@@ -151,10 +305,19 @@
     if(result.error){toast(result.error.message);return;}
 
     const saved=result.data;
-    toast(id?"Reserva actualizada":"Reserva creada · lista para enviar al cliente");
-    resetReservation();
+    const complete=reservationPassengersComplete(saved);
+    toast(
+      complete
+        ? (id?"Reserva actualizada · lista para enviar":"Reserva creada · lista para enviar al cliente")
+        : (id?"Reserva guardada · faltan datos de pasajeros":"Reserva creada · completa los pasajeros antes de enviarla")
+    );
     await loadOps({silent:true});
-    if(!id && saved) showReservationModal(saved);
+    if(complete){
+      resetReservation();
+      showReservationModal(saved);
+    }else{
+      if(saved?.id)window.v2EditReservation(saved.id);
+    }
   });
   $("#searchReservations")?.addEventListener("input",renderReservations);
   function renderReservations(){
@@ -163,11 +326,15 @@
     root.innerHTML=rows.map(r=>{
       const paid=paidFor(r.id),bal=balanceFor(r),st=effectiveStatus(r);
       const signed=Boolean(r.signed_at);
+      const passengerReady=reservationPassengersComplete(r);
       const canPay=signed && st!=="cancelled" && bal>0;
       const canConfirm=signed && st!=="cancelled" && bal<=0;
       const signatureLine=signed
         ? `<p class="reservation-signature-proof">✓ Firmada por ${esc(r.signer_name||r.client_name)} · ${shortDateTime(r.signed_at)}</p>`
         : `<p class="reservation-signature-pending">Falta firma del cliente para habilitar cobros.</p>`;
+      const passengerLine=passengerReady
+        ? `<p class="reservation-passengers-ready">✓ Datos de pasajeros completos.</p>`
+        : `<p class="reservation-passengers-missing">⚠ Completa nombre y edad de todos los pasajeros antes de enviar.</p>`;
 
       return `<article class="ops-card reservation-card">
         <div>
@@ -180,6 +347,7 @@
           <h3>${esc(r.code)} · ${esc(r.client_name)}</h3>
           <p>${esc(r.destination)} · ${formatDate(r.start_date)} → ${formatDate(r.end_date)}</p>
           <p>Creada por ${esc(creatorName(r))}</p>
+          ${passengerLine}
           ${signatureLine}
           <div class="reservation-finance">
             <div><small>Total</small><strong>${money(r.total)}</strong></div>
@@ -188,8 +356,8 @@
           </div>
         </div>
         <div class="ops-card-actions reservation-actions">
-          <button class="ghost-btn compact-btn" onclick="v2CopyReservation('${r.id}')" title="Copiar enlace para enviarlo al cliente">Copiar reserva</button>
-          <button class="ghost-btn compact-btn" onclick="v2OpenReservation('${r.id}')">Abrir reserva</button>
+          <button class="ghost-btn compact-btn" onclick="v2CopyReservation('${r.id}')" ${passengerReady?"":'disabled title="Completa nombre y edad de todos los pasajeros"'}>Copiar reserva</button>
+          <button class="ghost-btn compact-btn" onclick="v2OpenReservation('${r.id}')" ${passengerReady?"":'disabled title="Completa nombre y edad de todos los pasajeros"'}>Abrir reserva</button>
           <button class="ghost-btn compact-btn" onclick="v2RegisterPayment('${r.id}')" ${canPay?"":'disabled title="El cliente debe firmar la reserva antes de registrar pagos"'}>Registrar pago</button>
           <button class="ghost-btn compact-btn" onclick="v2Confirmation('${r.id}')" ${r.voucher_id||canConfirm?"":'disabled title="La confirmación final se genera después de la firma y liquidación"'}>${r.voucher_id?'Abrir confirmación':'Generar confirmación'}</button>
           <button class="ghost-btn compact-btn" onclick="v2EditReservation('${r.id}')">Editar</button>
@@ -199,7 +367,32 @@
     }).join("");
     $("#reservationsEmpty").hidden=rows.length>0;
   }
-  window.v2EditReservation=id=>{const r=byId(state.reservations,id);if(!r)return;switchView("reservations");const f=reservationForm;f.elements.id.value=r.id;f.quoteId.value=r.quote_id||"";f.agency.value=r.agency;f.clientId.value=r.client_id||"";f.clientName.value=r.client_name;f.phone.value=r.phone||"";f.email.value=r.email||"";f.destination.value=r.destination;f.startDate.value=r.start_date;f.endDate.value=r.end_date;f.travelerCount.value=r.traveler_count||1;f.total.value=r.total;f.status.value=r.status;f.requiresInvoice.checked=!!r.requires_invoice;f.notes.value=r.notes||"";$("#reservationFormTitle").textContent=`Editar ${r.code}`;window.scrollTo({top:0,behavior:"smooth"});};
+  window.v2EditReservation=id=>{
+    const r=byId(state.reservations,id);if(!r)return;
+    switchView("reservations");
+    const f=reservationForm;
+    const counts=reservationPassengerCounts(r);
+    f.elements.id.value=r.id;
+    f.quoteId.value=r.quote_id||"";
+    f.agency.value=r.agency;
+    f.clientId.value=r.client_id||"";
+    f.clientName.value=r.client_name;
+    f.phone.value=r.phone||"";
+    f.email.value=r.email||"";
+    f.destination.value=r.destination;
+    f.startDate.value=r.start_date;
+    f.endDate.value=r.end_date;
+    f.adults.value=counts.adults;
+    f.minors.value=counts.minors;
+    f.travelerCount.value=counts.total;
+    f.total.value=r.total;
+    f.status.value=r.status;
+    f.requiresInvoice.checked=!!r.requires_invoice;
+    f.notes.value=r.notes||"";
+    renderReservationPassengerRows(r.payload?.passengers||[]);
+    $("#reservationFormTitle").textContent=`Editar ${r.code}`;
+    window.scrollTo({top:0,behavior:"smooth"});
+  };
   window.v2DeleteReservation=async id=>{const r=byId(state.reservations,id);if(!r||!confirm(`¿Eliminar la reserva ${r.code}? Los pagos ligados también se eliminarán.`))return;const {error}=await db.from("reservations").delete().eq("id",id);if(error){toast(error.message);return;}toast("Reserva eliminada");await loadOps({silent:true});};
   window.v2RegisterPayment=id=>{
     const r=byId(state.reservations,id);
@@ -227,7 +420,8 @@
     f.sourceReservationId.value=r.id;
     f.sourceReservationCode.value=r.code;
     f.agency.value=r.agency;
-    f.passenger.value=r.client_name;
+    const passengerList=normalizePassengerList(r.payload?.passengers);
+    f.passenger.value=passengerList[0]?.name||r.client_name;
     f.passengerCount.value=r.traveler_count||1;
     f.phone.value=r.phone||"";
     f.email.value=r.email||"N/A";
@@ -275,13 +469,16 @@
       destination:q.destination,
       start_date:q.startDate,
       end_date:q.endDate,
-      traveler_count:num(q.travelerCount)||1,
+      traveler_count:Math.max(1,num(q.adults ?? q.travelerCount)||1)+Math.max(0,num(q.minors)),
       total:num(q.total),
       status:"pending",
       requires_invoice:false,
       notes:q.notes||"",
       payload:{
         tripType:q.tripType||"",
+        adults:Math.max(1,num(q.adults ?? q.travelerCount)||1),
+        minors:Math.max(0,num(q.minors)),
+        passengers:[],
         advisor:q.advisor||"",
         advisorWhatsapp:q.advisorWhatsapp||"",
         advisorEmail:q.advisorEmail||"",
@@ -303,10 +500,10 @@
       .eq("id",q.id);
     if(updateError)console.error(updateError);
 
-    toast("Reserva creada · ahora envíala al cliente para firma");
+    toast("Reserva creada · captura los datos de pasajeros antes de enviarla");
     await Promise.all([loadSharedData({silent:true}),loadOps({silent:true})]);
     switchView("reservations");
-    if(res) setTimeout(()=>showReservationModal(res),120);
+    if(res) setTimeout(()=>window.v2EditReservation(res.id),120);
   };
 
   const paymentForm=$("#paymentForm");if(paymentForm)paymentForm.paidAt.value=today();

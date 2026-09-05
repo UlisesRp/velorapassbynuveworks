@@ -73,7 +73,9 @@ async function loadQuote(){
   };
   currentQuote=q;
   const d=diff(q.startDate,q.endDate);document.title=`${q.folio} · ${q.client} · Velora Travel`;
-  set("#qFolio",q.folio);set("#qIssued",fmt(q.createdAt?.slice(0,10)));set("#qValidUntil",fmt(q.validUntil));set("#qClient",q.client);set("#qTitle",q.title);set("#qDestination",q.destination);set("#qDates",`${fmt(q.startDate)} — ${fmt(q.endDate)}`);set("#qDuration",`${d.days} días / ${d.nights} noches`);set("#qTravelers",`${q.travelerCount||1} pasajero${Number(q.travelerCount||1)>1?"s":""}`);
+  set("#qFolio",q.folio);set("#qIssued",fmt(q.createdAt?.slice(0,10)));set("#qValidUntil",fmt(q.validUntil));set("#qClient",q.client);set("#qTitle",q.title);set("#qDestination",q.destination);set("#qDates",`${fmt(q.startDate)} — ${fmt(q.endDate)}`);set("#qDuration",`${d.days} días / ${d.nights} noches`);const adults=Math.max(1,Number(q.adults ?? q.travelerCount ?? 1));
+  const minors=Math.max(0,Number(q.minors||0));
+  set("#qTravelers",`${adults} adulto${adults!==1?"s":""}${minors?` · ${minors} menor${minors!==1?"es":""} (0–12 años)`:""}`);
   $("#qItems").innerHTML=(q.items||[]).map(x=>{
     const photo=safeQuoteImage(x.hotelImage);
     const photoBlock=photo?`<div class="quote-hotel-photo"><img src="${photo}" alt="Hospedaje considerado"></div>`:"";

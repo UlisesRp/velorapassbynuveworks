@@ -372,3 +372,19 @@ V2.2.2 · VUELOS FIJOS EN COTIZACIÓN
 - Hospedaje conserva la imagen opcional.
 - Responsive revisado para evitar encimados.
 - No requiere SQL.
+
+
+V2.3 · ADULTOS, MENORES Y PASAJEROS OBLIGATORIOS
+=================================================
+- Cotización: Adultos + Menores de 0 a 12 años.
+- Total de viajeros se calcula automáticamente.
+- Al pasar a Reserva, adultos y menores se conservan.
+- Reserva crea una fila por pasajero.
+- Nombre completo y edad obligatorios por persona.
+- Adultos: 13 a 120 años.
+- Menores: 0 a 12 años.
+- Se puede guardar borrador incompleto.
+- Copiar/Abrir reserva bloqueado hasta completar pasajeros.
+- La reserva pública muestra pasajeros.
+- Supabase bloquea la reserva pública y la firma si faltan pasajeros.
+- Ejecutar SUPABASE_V2.3_PASAJEROS_OBLIGATORIOS.sql.

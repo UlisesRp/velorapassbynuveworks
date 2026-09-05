@@ -469,6 +469,21 @@ $("#fillVoucherDemo").addEventListener("click",()=>{
 const quoteForm=$("#quoteForm");
 wireDates(quoteForm);
 
+function syncQuoteTravelerCount(){
+  if(!quoteForm)return 1;
+  const adults=Math.max(1,Number(quoteForm.adults?.value||1));
+  const minors=Math.max(0,Number(quoteForm.minors?.value||0));
+  const total=adults+minors;
+  quoteForm.travelerCount.value=total;
+  return total;
+}
+
+["input","change"].forEach(evt=>{
+  quoteForm.adults?.addEventListener(evt,syncQuoteTravelerCount);
+  quoteForm.minors?.addEventListener(evt,syncQuoteTravelerCount);
+});
+syncQuoteTravelerCount();
+
 // V2.2.2 · Vuelos fijos.
 // Las fechas aéreas siguen a las fechas generales hasta que el asesor las edita manualmente.
 let quoteOutboundFlightDateManual=false;
@@ -753,7 +768,7 @@ quoteForm.addEventListener("submit",async e=>{
 $("#fillQuoteDemo").addEventListener("click",()=>{
   try{
   const f=quoteForm;const start=new Date(Date.now()+14*86400000);const last=new Date(start.getFullYear(),start.getMonth()+1,0).getDate();const end=new Date(start.getFullYear(),start.getMonth(),Math.min(start.getDate()+4,last));const iso=d=>d.toISOString().slice(0,10);
-  f.client.value="Mariana González Ruiz";f.phone.value="55 1234 5678";f.email.value="mariana@ejemplo.com";f.travelerCount.value=2;f.tripType.value="Vacaciones";f.title.value="Cancún · Todo Incluido";f.destination.value="Cancún, Quintana Roo";f.startDate.value=iso(start);constrainSameMonth(f);f.endDate.value=iso(end);f.validUntil.value=iso(new Date(Date.now()+3*86400000));
+  f.client.value="Mariana González Ruiz";f.phone.value="55 1234 5678";f.email.value="mariana@ejemplo.com";f.adults.value=2;f.minors.value=0;syncQuoteTravelerCount();f.tripType.value="Vacaciones";f.title.value="Cancún · Todo Incluido";f.destination.value="Cancún, Quintana Roo";f.startDate.value=iso(start);constrainSameMonth(f);f.endDate.value=iso(end);f.validUntil.value=iso(new Date(Date.now()+3*86400000));
   quoteOutboundFlightDateManual=false;quoteReturnFlightDateManual=false;syncQuoteOutboundFlightDate(true);syncQuoteReturnFlightDate(true);
   f.quoteOutboundAirline.value="Aeroméxico";f.quoteOutboundFlight.value="AM 512";f.quoteOutboundRoute.value="CDMX → Cancún · 08:30";
   f.quoteReturnAirline.value="Aeroméxico";f.quoteReturnFlight.value="AM 513";f.quoteReturnRoute.value="Cancún → CDMX · 19:40";

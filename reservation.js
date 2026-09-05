@@ -54,8 +54,22 @@ function renderReservation(r){
   $("#rDestination").textContent=r.destination||"—";
   $("#rStart").textContent=fmtDate(r.start_date);
   $("#rEnd").textContent=fmtDate(r.end_date);
-  $("#rTravelers").textContent=String(r.traveler_count||1);
+  const passengers=Array.isArray(r.payload?.passengers)?r.payload.passengers:[];
+  const adults=Math.max(1,Number(r.payload?.adults ?? r.traveler_count ?? 1));
+  const minors=Math.max(0,Number(r.payload?.minors||0));
+  $("#rTravelers").textContent=`${adults} adulto${adults!==1?"s":""}${minors?` · ${minors} menor${minors!==1?"es":""}`:""}`;
   $("#rTotal").textContent=money(r.total);
+
+  const passengerRoot=$("#rPassengerList");
+  passengerRoot.innerHTML=passengers.map(p=>`
+    <article class="reservation-public-passenger">
+      <span>${p.type==="minor"?"MENOR":"ADULTO"}</span>
+      <div>
+        <strong>${esc(p.name||"—")}</strong>
+        <small>${Number(p.age)} años</small>
+      </div>
+    </article>
+  `).join("");
 
   const isVelora=String(r.agency||"").toLowerCase().includes("velora");
   $("#rBrandLogo").style.display=isVelora?"block":"none";

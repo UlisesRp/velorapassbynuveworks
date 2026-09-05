@@ -665,3 +665,96 @@ option,
     gap:14px;
   }
 }
+
+
+/* ===================== V2.3 · PASAJEROS OBLIGATORIOS ===================== */
+.reservation-passengers-section{
+  padding:15px;
+  border:1px solid #dfd3d6;
+  border-radius:15px;
+  background:#fbf8f9;
+}
+.reservation-passengers-head{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:14px;
+  margin-bottom:13px;
+}
+.reservation-passengers-head strong{
+  display:block;
+  margin:3px 0;
+  font-size:11px;
+}
+.reservation-passengers-head small{
+  color:#887d81;
+  font-size:9px;
+}
+.reservation-passengers-status{
+  flex:0 0 auto;
+  padding:5px 8px;
+  border-radius:999px;
+  background:#fff1dd;
+  color:#8a6122;
+  font-size:8px;
+  font-weight:900;
+}
+.reservation-passengers-status.complete{
+  background:#e9f5ee;
+  color:#2b6a4c;
+}
+.reservation-passengers-list{
+  display:grid;
+  gap:10px;
+}
+.reservation-passenger-row{
+  display:grid;
+  grid-template-columns:105px minmax(0,1fr) 105px;
+  gap:10px;
+  align-items:end;
+  min-width:0;
+  padding:11px;
+  border:1px solid #e4dadc;
+  border-radius:12px;
+  background:#fff;
+}
+.reservation-passenger-row > *{
+  min-width:0;
+}
+.reservation-passenger-label span{
+  display:inline-block;
+  padding:3px 6px;
+  border-radius:999px;
+  background:#edf4f1;
+  color:#245b4a;
+  font-size:7px;
+  font-weight:900;
+}
+.reservation-passenger-row.minor .reservation-passenger-label span{
+  background:#f8edf1;
+  color:#81455b;
+}
+.reservation-passenger-label strong{
+  display:block;
+  margin-top:5px;
+  font-size:10px;
+}
+.reservation-passengers-ready{
+  color:#2d7553!important;
+  font-weight:700;
+}
+.reservation-passengers-missing{
+  color:#9a6b35!important;
+  font-weight:700;
+}
+@media(max-width:760px){
+  .reservation-passenger-row{
+    grid-template-columns:minmax(0,1fr);
+  }
+  .reservation-passengers-head{
+    display:grid;
+  }
+  .reservation-passengers-status{
+    justify-self:start;
+  }
+}
