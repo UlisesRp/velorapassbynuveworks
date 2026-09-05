@@ -296,3 +296,36 @@ V2.1.5 · HOTFIX CLICS DEL MENÚ
   vuelven a ser clicables.
 - No se modificó el diseño del drawer V2.1.4.
 - No requiere SQL ni cambios en Supabase.
+
+
+V2.2 · CALENDARIO OPERATIVO
+===========================
+El calendario deja de ser solo visual.
+
+FUNCIONES NUEVAS:
+- Todos los días del calendario son clicables.
+- Al seleccionar un día aparece un menú de acciones:
+  1. Nueva cotización
+  2. Nueva reserva
+  3. Agendar evento
+- Nueva cotización:
+  - abre el formulario de cotización;
+  - precarga el día seleccionado como Fecha de salida;
+  - la Fecha de regreso sigue siendo editable.
+- Nueva reserva:
+  - abre el módulo Reservas;
+  - precarga el día seleccionado como Salida;
+  - el regreso sigue editable.
+- Agendar evento:
+  - conserva el módulo de eventos actual;
+  - precarga la fecha seleccionada;
+  - permite agencia, tipo, título, hora, cliente y notas.
+- El modal del día muestra reservas y eventos ya existentes para esa fecha.
+- Los días muestran un contador de elementos registrados.
+- El día seleccionado queda resaltado.
+- Botón "Hoy" para volver al mes actual.
+- Los días de meses adyacentes también son clicables.
+- Los eventos existentes siguen guardándose en la tabla events de Supabase.
+
+NO REQUIERE SQL:
+La tabla events y las políticas necesarias ya existen en Velora App V2.

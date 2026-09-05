@@ -1,5 +1,5 @@
 (() => {
-  const state={clients:[],reservations:[],payments:[],events:[],profiles:new Map(),calendarCursor:new Date(new Date().getFullYear(),new Date().getMonth(),1)};
+  const state={clients:[],reservations:[],payments:[],events:[],profiles:new Map(),calendarCursor:new Date(new Date().getFullYear(),new Date().getMonth(),1),selectedCalendarDate:null};
   const esc=(v="")=>String(v).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
   const isoDate=d=>new Date(d).toISOString().slice(0,10);
   const today=()=>new Date().toISOString().slice(0,10);
@@ -346,12 +346,291 @@
   function renderPayments(){const body=$("#paymentsTable");if(!body)return;const q=$("#searchPayments").value.trim().toLowerCase();const rows=state.payments.filter(p=>{const r=byId(state.reservations,p.reservation_id);return [r?.code,r?.client_name,p.reference,p.method].join(" ").toLowerCase().includes(q)});body.innerHTML=rows.map(p=>{const r=byId(state.reservations,p.reservation_id);return `<tr><td>${formatDate(p.paid_at)}</td><td><strong>${esc(r?.code||"—")}</strong></td><td>${esc(r?.client_name||"—")}</td><td>${esc(p.method||"—")}</td><td><strong>${money(p.amount)}</strong></td><td>${esc(creatorName(p))}</td><td><button class="icon-btn danger-btn" onclick="v2DeletePayment('${p.id}')">⌫</button></td></tr>`}).join("");$("#paymentsEmpty").hidden=rows.length>0;}
   window.v2DeletePayment=async id=>{const p=byId(state.payments,id);if(!p||!confirm("¿Eliminar este pago? El saldo de la reserva se recalculará."))return;const {error}=await db.from("payments").delete().eq("id",id);if(error){toast(error.message);return;}const r=byId(state.reservations,p.reservation_id);const remaining=paymentsFor(r.id).filter(x=>x.id!==id).reduce((s,x)=>s+num(x.amount),0);const status=num(r.total)>0&&remaining>=num(r.total)?"liquidated":(r.signed_at?"confirmed":"pending");await db.from("reservations").update({status,updated_at:new Date().toISOString()}).eq("id",r.id);toast("Pago eliminado");await loadOps({silent:true});};
 
-  const eventForm=$("#eventForm");if(eventForm)eventForm.eventDate.value=today();
-  eventForm?.addEventListener("submit",async e=>{e.preventDefault();const f=eventForm;const {error}=await db.from("events").insert({agency:f.agency.value,title:f.title.value.trim(),event_date:f.eventDate.value,event_time:f.eventTime.value||null,event_type:f.eventType.value,client_name:f.clientName.value.trim(),notes:f.notes.value.trim()});if(error){toast(error.message);return;}toast("Evento guardado");f.reset();f.eventDate.value=today();await loadOps({silent:true});});
-  $("#calendarPrev")?.addEventListener("click",()=>{state.calendarCursor=new Date(state.calendarCursor.getFullYear(),state.calendarCursor.getMonth()-1,1);renderCalendar();});
-  $("#calendarNext")?.addEventListener("click",()=>{state.calendarCursor=new Date(state.calendarCursor.getFullYear(),state.calendarCursor.getMonth()+1,1);renderCalendar();});
-  function renderCalendar(){const grid=$("#calendarGrid");if(!grid)return;const y=state.calendarCursor.getFullYear(),m=state.calendarCursor.getMonth();$("#calendarTitle").textContent=new Intl.DateTimeFormat("es-MX",{month:"long",year:"numeric"}).format(state.calendarCursor);const first=new Date(y,m,1),last=new Date(y,m+1,0);const mondayIndex=(first.getDay()+6)%7;const cells=[];for(let i=0;i<mondayIndex;i++){const d=new Date(y,m,-mondayIndex+i+1);cells.push({d,out:true});}for(let day=1;day<=last.getDate();day++)cells.push({d:new Date(y,m,day),out:false});while(cells.length%7)cells.push({d:new Date(y,m+1,cells.length-mondayIndex-last.getDate()+1),out:true});grid.innerHTML=cells.map(c=>{const iso=isoDate(c.d),res=state.reservations.filter(r=>r.start_date===iso&&r.status!=="cancelled"),events=state.events.filter(e=>e.event_date===iso);return `<div class="calendar-day ${c.out?'outside':''} ${iso===today()?'today':''}"><span class="calendar-day-number">${c.d.getDate()}</span>${res.slice(0,2).map(r=>`<span class="calendar-entry" title="${esc(r.client_name)}">✈ ${esc(r.destination)}</span>`).join("")}${events.slice(0,3).map(e=>`<span class="calendar-entry event" title="${esc(e.title)}">${esc(e.event_time||'')} ${esc(e.title)}</span>`).join("")}</div>`}).join("");const monthEvents=state.events.filter(e=>e.event_date?.startsWith(`${y}-${String(m+1).padStart(2,'0')}`));$("#eventList").innerHTML=monthEvents.slice(0,12).map(e=>`<div class="event-item"><div class="event-item-actions"><button onclick="v2DeleteEvent('${e.id}')">×</button></div><strong>${esc(e.title)}</strong><span>${formatDate(e.event_date)} ${esc(e.event_time||'')} · ${esc(e.agency)}</span></div>`).join("");}
-  window.v2DeleteEvent=async id=>{if(!confirm("¿Eliminar este evento?"))return;const {error}=await db.from("events").delete().eq("id",id);if(error){toast(error.message);return;}await loadOps({silent:true});};
+  const eventForm=$("#eventForm");
+  if(eventForm) eventForm.eventDate.value=today();
+
+  function selectedDateLabel(iso){
+    if(!iso)return"";
+    return new Intl.DateTimeFormat("es-MX",{
+      weekday:"long",
+      day:"numeric",
+      month:"long",
+      year:"numeric"
+    }).format(new Date(iso+"T12:00:00"));
+  }
+
+  function calendarEntriesForDate(iso){
+    const reservations=state.reservations
+      .filter(r=>r.start_date===iso && r.status!=="cancelled")
+      .sort((a,b)=>String(a.client_name||"").localeCompare(String(b.client_name||"")));
+
+    const events=state.events
+      .filter(e=>e.event_date===iso)
+      .sort((a,b)=>String(a.event_time||"").localeCompare(String(b.event_time||"")));
+
+    return {reservations,events};
+  }
+
+  function closeCalendarDayModal(){
+    $("#calendarDayModal")?.classList.remove("open");
+  }
+
+  function openCalendarDay(iso){
+    if(!iso)return;
+    state.selectedCalendarDate=iso;
+
+    const modal=$("#calendarDayModal");
+    const {reservations,events}=calendarEntriesForDate(iso);
+    const total=reservations.length+events.length;
+
+    $("#calendarDayModalTitle").textContent=selectedDateLabel(iso);
+    $("#calendarDayExistingCount").textContent=String(total);
+
+    const rows=[
+      ...reservations.map(r=>`
+        <div class="calendar-day-existing-item reservation">
+          <span>✈</span>
+          <div>
+            <strong>${esc(r.client_name)}</strong>
+            <small>Reserva · ${esc(r.destination)} · ${esc(r.agency)}</small>
+          </div>
+        </div>`),
+      ...events.map(e=>`
+        <div class="calendar-day-existing-item event">
+          <span>□</span>
+          <div>
+            <strong>${esc(e.title)}</strong>
+            <small>${esc(e.event_time||"Sin hora")} · ${esc(e.event_type||"Evento")} · ${esc(e.agency)}</small>
+          </div>
+        </div>`)
+    ];
+
+    $("#calendarDayExistingList").innerHTML=rows.join("");
+    $("#calendarDayExistingEmpty").hidden=total>0;
+
+    modal?.classList.add("open");
+    renderCalendar();
+  }
+
+  function prepareQuoteFromCalendar(iso){
+    closeCalendarDayModal();
+    switchView("newQuote");
+
+    if(typeof quoteForm!=="undefined" && quoteForm){
+      quoteForm.startDate.value=iso;
+      quoteForm.startDate.dispatchEvent(new Event("change",{bubbles:true}));
+      setTimeout(()=>quoteForm.client?.focus(),80);
+    }
+
+    toast(`Cotización iniciada para ${formatDate(iso)}`);
+  }
+
+  function prepareReservationFromCalendar(iso){
+    closeCalendarDayModal();
+    resetReservation();
+    switchView("reservations");
+
+    if(reservationForm){
+      reservationForm.startDate.value=iso;
+      reservationForm.endDate.min=iso;
+      if(reservationForm.endDate.value && reservationForm.endDate.value<iso){
+        reservationForm.endDate.value="";
+      }
+      setTimeout(()=>reservationForm.clientName?.focus(),80);
+    }
+
+    toast(`Reserva iniciada para ${formatDate(iso)}`);
+  }
+
+  function prepareEventFromCalendar(iso){
+    closeCalendarDayModal();
+    switchView("calendar");
+
+    if(eventForm){
+      eventForm.eventDate.value=iso;
+      eventForm.scrollIntoView({behavior:"smooth",block:"start"});
+      eventForm.classList.add("calendar-form-highlight");
+      setTimeout(()=>{
+        eventForm.classList.remove("calendar-form-highlight");
+        eventForm.title?.focus();
+      },450);
+    }
+
+    toast(`Evento para ${formatDate(iso)}`);
+  }
+
+  eventForm?.addEventListener("submit",async e=>{
+    e.preventDefault();
+    const f=eventForm;
+
+    const {error}=await db.from("events").insert({
+      agency:f.agency.value,
+      title:f.title.value.trim(),
+      event_date:f.eventDate.value,
+      event_time:f.eventTime.value||null,
+      event_type:f.eventType.value,
+      client_name:f.clientName.value.trim(),
+      notes:f.notes.value.trim()
+    });
+
+    if(error){
+      toast(error.message);
+      return;
+    }
+
+    const savedDate=f.eventDate.value;
+    toast("Evento guardado");
+
+    f.reset();
+    f.eventDate.value=savedDate||today();
+
+    if(savedDate){
+      const [y,m]=savedDate.split("-").map(Number);
+      state.calendarCursor=new Date(y,m-1,1);
+      state.selectedCalendarDate=savedDate;
+    }
+
+    await loadOps({silent:true});
+  });
+
+  $("#calendarPrev")?.addEventListener("click",()=>{
+    state.calendarCursor=new Date(
+      state.calendarCursor.getFullYear(),
+      state.calendarCursor.getMonth()-1,
+      1
+    );
+    renderCalendar();
+  });
+
+  $("#calendarNext")?.addEventListener("click",()=>{
+    state.calendarCursor=new Date(
+      state.calendarCursor.getFullYear(),
+      state.calendarCursor.getMonth()+1,
+      1
+    );
+    renderCalendar();
+  });
+
+  $("#calendarToday")?.addEventListener("click",()=>{
+    const d=new Date();
+    state.calendarCursor=new Date(d.getFullYear(),d.getMonth(),1);
+    state.selectedCalendarDate=today();
+    renderCalendar();
+  });
+
+  $("#calendarGrid")?.addEventListener("click",e=>{
+    const day=e.target.closest(".calendar-day");
+    if(!day)return;
+    openCalendarDay(day.dataset.date);
+  });
+
+  $("#calendarDayModalClose")?.addEventListener("click",closeCalendarDayModal);
+  $("#calendarDayModal")?.addEventListener("click",e=>{
+    if(e.target.id==="calendarDayModal")closeCalendarDayModal();
+  });
+
+  document.addEventListener("keydown",e=>{
+    if(e.key==="Escape")closeCalendarDayModal();
+  });
+
+  $$("[data-calendar-action]").forEach(btn=>{
+    btn.addEventListener("click",()=>{
+      const iso=state.selectedCalendarDate;
+      if(!iso)return;
+
+      const action=btn.dataset.calendarAction;
+      if(action==="quote")prepareQuoteFromCalendar(iso);
+      if(action==="reservation")prepareReservationFromCalendar(iso);
+      if(action==="event")prepareEventFromCalendar(iso);
+    });
+  });
+
+  function renderCalendar(){
+    const grid=$("#calendarGrid");
+    if(!grid)return;
+
+    const y=state.calendarCursor.getFullYear();
+    const m=state.calendarCursor.getMonth();
+
+    $("#calendarTitle").textContent=new Intl.DateTimeFormat("es-MX",{
+      month:"long",
+      year:"numeric"
+    }).format(state.calendarCursor);
+
+    const first=new Date(y,m,1);
+    const last=new Date(y,m+1,0);
+    const mondayIndex=(first.getDay()+6)%7;
+    const cells=[];
+
+    for(let i=0;i<mondayIndex;i++){
+      const d=new Date(y,m,-mondayIndex+i+1);
+      cells.push({d,out:true});
+    }
+
+    for(let day=1;day<=last.getDate();day++){
+      cells.push({d:new Date(y,m,day),out:false});
+    }
+
+    while(cells.length%7){
+      cells.push({
+        d:new Date(y,m+1,cells.length-mondayIndex-last.getDate()+1),
+        out:true
+      });
+    }
+
+    grid.innerHTML=cells.map(c=>{
+      const iso=isoDate(c.d);
+      const res=state.reservations.filter(r=>r.start_date===iso&&r.status!=="cancelled");
+      const events=state.events.filter(e=>e.event_date===iso);
+      const count=res.length+events.length;
+      const selected=state.selectedCalendarDate===iso;
+
+      return `<button type="button"
+        class="calendar-day ${c.out?'outside':''} ${iso===today()?'today':''} ${selected?'selected':''}"
+        data-date="${iso}"
+        aria-label="${esc(selectedDateLabel(iso))}. ${count} elementos.">
+          <div class="calendar-day-top">
+            <span class="calendar-day-number">${c.d.getDate()}</span>
+            ${count?`<span class="calendar-day-count">${count}</span>`:""}
+          </div>
+
+          ${res.slice(0,2).map(r=>`
+            <span class="calendar-entry" title="${esc(r.client_name)}">
+              ✈ ${esc(r.destination)}
+            </span>`).join("")}
+
+          ${events.slice(0,3).map(e=>`
+            <span class="calendar-entry event" title="${esc(e.title)}">
+              ${esc(e.event_time||'')} ${esc(e.title)}
+            </span>`).join("")}
+
+          ${count>5?`<span class="calendar-more">+${count-5} más</span>`:""}
+          <span class="calendar-day-hover-action">＋ Agregar</span>
+        </button>`;
+    }).join("");
+
+    const monthPrefix=`${y}-${String(m+1).padStart(2,'0')}`;
+    const monthEvents=state.events.filter(e=>e.event_date?.startsWith(monthPrefix));
+
+    $("#eventList").innerHTML=monthEvents.slice(0,12).map(e=>`
+      <div class="event-item">
+        <div class="event-item-actions">
+          <button onclick="v2DeleteEvent('${e.id}')" title="Eliminar evento">×</button>
+        </div>
+        <strong>${esc(e.title)}</strong>
+        <span>${formatDate(e.event_date)} ${esc(e.event_time||'')} · ${esc(e.agency)}</span>
+      </div>`).join("");
+  }
+
+  window.v2DeleteEvent=async id=>{
+    if(!confirm("¿Eliminar este evento?"))return;
+    const {error}=await db.from("events").delete().eq("id",id);
+    if(error){
+      toast(error.message);
+      return;
+    }
+    await loadOps({silent:true});
+  };
 
   function renderDashboard(){const active=state.reservations.filter(r=>!["cancelled","liquidated"].includes(effectiveStatus(r)));const balance=state.reservations.filter(r=>r.status!=="cancelled").reduce((s,r)=>s+balanceFor(r),0);const t=new Date(),future=new Date(t.getTime()+30*86400000);const upcoming=state.reservations.filter(r=>{const d=new Date(r.start_date+"T12:00:00");return r.status!=="cancelled"&&d>=new Date(t.toDateString())&&d<=future}).sort((a,b)=>a.start_date.localeCompare(b.start_date));$("#opsStatClients").textContent=state.clients.filter(c=>c.status!=="inactive").length;$("#opsStatReservations").textContent=active.length;$("#opsStatBalance").textContent=money(balance);$("#opsStatUpcoming").textContent=upcoming.length;$("#opsUpcomingReservations").innerHTML=upcoming.slice(0,5).map(r=>`<div class="ops-compact-row"><div><strong>${esc(r.client_name)}</strong><span>${esc(r.destination)}</span></div><div><strong>${formatDate(r.start_date)}</strong><small>${esc(r.agency)}</small></div></div>`).join("");$("#opsUpcomingEmpty").hidden=upcoming.length>0;const events=state.events.filter(e=>e.event_date>=today()).sort((a,b)=>(a.event_date+a.event_time).localeCompare(b.event_date+b.event_time));$("#opsUpcomingEvents").innerHTML=events.slice(0,5).map(e=>`<div class="ops-compact-row"><div><strong>${esc(e.title)}</strong><span>${esc(e.client_name||e.event_type)}</span></div><div><strong>${formatDate(e.event_date)}</strong><small>${esc(e.event_time||e.agency)}</small></div></div>`).join("");$("#opsEventsEmpty").hidden=events.length>0;}
 
