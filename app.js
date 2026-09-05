@@ -323,15 +323,18 @@ function renderQuoteList(){
 $("#searchVouchers").addEventListener("input",renderVoucherList);
 $("#searchQuotes").addEventListener("input",renderQuoteList);
 
-// Calendarios: regreso limitado al mismo mes de salida.
+// Calendarios: el regreso solo debe ser igual o posterior a la salida.
+// Se permiten viajes que crucen de mes o de año.
 function constrainSameMonth(form){
   const start=form.startDate,end=form.endDate;
-  if(!start.value){end.min="";end.max="";return}
-  const [y,m]=start.value.split("-").map(Number);
-  const last=new Date(y,m,0).getDate();
+  if(!start.value){
+    end.min="";
+    end.max="";
+    return;
+  }
   end.min=start.value;
-  end.max=`${y}-${String(m).padStart(2,"0")}-${String(last).padStart(2,"0")}`;
-  if(end.value&&(end.value<end.min||end.value>end.max))end.value="";
+  end.max="";
+  if(end.value && end.value < end.min) end.value="";
 }
 function updateDuration(form){
   const d=dayDiff(form.startDate.value,form.endDate.value);
@@ -354,12 +357,41 @@ function updateVoucherComputed(){
   voucherForm.nightsPreview.value=stay?stay.nights:"";
 }
 ["checkIn","checkOut"].forEach(name=>["input","change"].forEach(evt=>voucherForm[name].addEventListener(evt,updateVoucherComputed)));
+// Fechas de vuelo sincronizadas por default con las fechas generales.
+// Mientras el agente no toque manualmente una fecha de vuelo, seguirá a salida/regreso.
+// Si el agente la modifica, queda independiente y editable.
+let outboundFlightDateManual=false;
+let returnFlightDateManual=false;
+let syncingFlightDates=false;
+
+voucherForm.outboundFlightDate.addEventListener("input",()=>{
+  if(!syncingFlightDates) outboundFlightDateManual=Boolean(voucherForm.outboundFlightDate.value);
+});
+voucherForm.returnFlightDate.addEventListener("input",()=>{
+  if(!syncingFlightDates) returnFlightDateManual=Boolean(voucherForm.returnFlightDate.value);
+});
+
+function syncOutboundFlightDate(force=false){
+  if(force || !outboundFlightDateManual){
+    syncingFlightDates=true;
+    voucherForm.outboundFlightDate.value=voucherForm.startDate.value||"";
+    syncingFlightDates=false;
+  }
+}
+function syncReturnFlightDate(force=false){
+  if(force || !returnFlightDateManual){
+    syncingFlightDates=true;
+    voucherForm.returnFlightDate.value=voucherForm.endDate.value||"";
+    syncingFlightDates=false;
+  }
+}
+
 voucherForm.startDate.addEventListener("change",()=>{
-  if(!voucherForm.outboundFlightDate.value)voucherForm.outboundFlightDate.value=voucherForm.startDate.value;
+  syncOutboundFlightDate();
   if(!voucherForm.checkIn.value)voucherForm.checkIn.value=voucherForm.startDate.value;
 });
 voucherForm.endDate.addEventListener("change",()=>{
-  if(!voucherForm.returnFlightDate.value)voucherForm.returnFlightDate.value=voucherForm.endDate.value;
+  syncReturnFlightDate();
   if(!voucherForm.checkOut.value)voucherForm.checkOut.value=voucherForm.endDate.value;
   updateVoucherComputed();
 });
@@ -419,7 +451,7 @@ $("#fillVoucherDemo").addEventListener("click",()=>{
   const iso=d=>d.toISOString().slice(0,10);
   f.passenger.value="Karen Rivero";f.passengerCount.value=2;f.phone.value="55 1900 0905";f.email.value="karen@ejemplo.com";
   f.destination.value="Cancún, Quintana Roo";f.startDate.value=iso(start);constrainSameMonth(f);f.endDate.value=iso(end);f.tripType.value="Vacaciones";f.generalLocator.value="VEL-CUN-2026";
-  f.outboundAirline.value="Volaris";f.outboundFlight.value="Y4 1234";f.outboundFlightLocator.value="ZCY123";f.outboundFlightDate.value=iso(start);f.outboundOriginCode.value="AIFA";f.outboundOriginCity.value="Ciudad de México";f.outboundDestinationCode.value="CUN";f.outboundDestinationCity.value="Cancún";f.outboundDepartureTime.value="07:45";f.outboundDepartureTerminal.value="1";f.outboundArrivalTime.value="10:25";f.outboundArrivalTerminal.value="3";
+  outboundFlightDateManual=false;returnFlightDateManual=false;f.outboundAirline.value="Volaris";f.outboundFlight.value="Y4 1234";f.outboundFlightLocator.value="ZCY123";f.outboundFlightDate.value=iso(start);f.outboundOriginCode.value="AIFA";f.outboundOriginCity.value="Ciudad de México";f.outboundDestinationCode.value="CUN";f.outboundDestinationCity.value="Cancún";f.outboundDepartureTime.value="07:45";f.outboundDepartureTerminal.value="1";f.outboundArrivalTime.value="10:25";f.outboundArrivalTerminal.value="3";
   f.returnAirline.value="Volaris";f.returnFlight.value="Y4 5678";f.returnFlightLocator.value="ZCY124";f.returnFlightDate.value=iso(end);f.returnOriginCode.value="CUN";f.returnOriginCity.value="Cancún";f.returnDestinationCode.value="AIFA";f.returnDestinationCity.value="Ciudad de México";f.returnDepartureTime.value="18:30";f.returnDepartureTerminal.value="3";f.returnArrivalTime.value="21:10";f.returnArrivalTerminal.value="1";
   f.transportOperator.value="Volaris / Operador local";f.arrivalTransferLocator.value="TR-IN-528441";f.departureTransferLocator.value="TR-OUT-528442";f.carryOnBaggage.value="1 equipaje de mano · 10 kg";f.checkedBaggage.value="1 equipaje documentado · 23 kg";
   f.hotel.value="Riu Palace Costa Mujeres";f.checkIn.value=iso(start);f.checkOut.value=iso(end);f.room.value="Junior Suite · 2 adultos";f.lodgingPlan.value="Todo incluido";f.lodgingLocator.value="HTL-839201";
@@ -659,6 +691,14 @@ window.convertQuoteToVoucher=id=>{
   voucherForm.startDate.value=q.startDate||"";
   constrainSameMonth(voucherForm);
   voucherForm.endDate.value=q.endDate||"";
+
+  // Al pasar una cotización a reserva/confirmación, las fechas de vuelo
+  // arrancan por default con las fechas generales, pero siguen siendo editables.
+  outboundFlightDateManual=false;
+  returnFlightDateManual=false;
+  syncOutboundFlightDate(true);
+  syncReturnFlightDate(true);
+
   voucherForm.tripType.value=q.tripType||"";
   voucherForm.notes.value=q.notes||"";
   voucherForm.advisor.value=q.advisor||"";

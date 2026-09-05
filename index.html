@@ -192,7 +192,7 @@
                 <label class="field span-2"><span>Título de la cotización *</span><input required name="title" placeholder="Ej. Cancún Todo Incluido"></label>
                 <label class="field span-2"><span>Destino *</span><input required name="destination" placeholder="Cancún, Quintana Roo"></label>
                 <label class="field"><span>Fecha de salida *</span><input required type="date" name="startDate"></label>
-                <label class="field"><span>Fecha de regreso *</span><input required type="date" name="endDate"><small class="field-hint">Se limita al mismo mes de la salida.</small></label>
+                <label class="field"><span>Fecha de regreso *</span><input required type="date" name="endDate"><small class="field-hint">El regreso no puede ser anterior a la salida.</small></label>
                 <label class="field"><span>Duración</span><input readonly name="durationPreview" placeholder="Automática"></label>
                 <label class="field"><span>Vigencia de la cotización *</span><input required type="date" name="validUntil"></label>
               </div>
@@ -325,7 +325,7 @@
               <div class="fields-grid">
                 <label class="field span-2"><span>Destino *</span><input required name="destination" placeholder="Cancún, Quintana Roo"></label>
                 <label class="field"><span>Fecha de salida *</span><input required type="date" name="startDate"></label>
-                <label class="field"><span>Fecha de regreso *</span><input required type="date" name="endDate"><small class="field-hint">La fecha de regreso queda limitada al mismo mes de la salida.</small></label>
+                <label class="field"><span>Fecha de regreso *</span><input required type="date" name="endDate"><small class="field-hint">La fecha de regreso no puede ser anterior a la salida.</small></label>
                 <label class="field"><span>Duración</span><input name="durationPreview" readonly placeholder="Automática"></label>
                 <label class="field"><span>Tipo de viaje *</span><input required name="tripType" placeholder="Vacaciones, luna de miel..."></label>
                 <label class="field span-2"><span>Localizador / reserva general</span><input name="generalLocator" placeholder="Referencia general"></label>

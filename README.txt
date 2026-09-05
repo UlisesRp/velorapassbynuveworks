@@ -171,3 +171,21 @@ VELORA APP V2.0 · OPERACIÓN INTERNA TIPO AuRA
 - Todos los usuarios autenticados autorizados comparten la operación.
 - Ejecutar SUPABASE_V2.0_OPERACION_INTERNA.sql una sola vez en Supabase.
 - Conservar el supabase-client.js real al sustituir archivos.
+
+
+V2.0.1 · HOTFIX DE FECHAS
+- Eliminado el límite que obligaba a que salida y regreso fueran en el mismo mes.
+- Ahora se permiten viajes que crucen de mes y de año.
+- La única restricción es que la fecha de regreso no sea anterior a la fecha de salida.
+- Aplica a cotizaciones y confirmaciones.
+- No requiere cambios en Supabase ni ejecutar SQL.
+
+
+V2.0.2 · FECHAS DE VUELO INTELIGENTES
+- Mantiene el hotfix de fechas V2.0.1: salida y regreso pueden cruzar de mes o de año.
+- Al capturar Fecha de salida, Vuelo de ida toma esa misma fecha por default.
+- Al capturar Fecha de regreso, Vuelo de regreso toma esa misma fecha por default.
+- Si el agente cambia manualmente una fecha de vuelo, queda independiente y ya no se sobrescribe automáticamente.
+- Al convertir una cotización a Reserva/Confirmación, las fechas de vuelo se precargan con salida y regreso.
+- Las fechas de vuelo permanecen totalmente editables.
+- No requiere cambios en Supabase ni ejecutar SQL.
