@@ -260,3 +260,15 @@ V2.1.2 · HOTFIX SIDEBAR
 - Eliminado el scroll horizontal del sidebar.
 - Menú ligeramente más compacto en laptops.
 - No requiere SQL ni cambios en Supabase.
+
+
+V2.1.3 · MENÚ HAMBURGUESA
+=========================
+- Sidebar reducido a un rail minimalista.
+- Logo compacto.
+- Indicador "Supabase" reducido a una pequeña píldora de estado.
+- Inicio, Clientes, Cotizaciones, Reservas, Pagos, Calendario, Reportes y Confirmaciones pasan al menú hamburguesa.
+- Sesión activa, Editar usuario y Cerrar sesión también viven dentro del menú hamburguesa.
+- El drawer se abre sobre el contenido y no altera el ancho de la página.
+- Se cierra al elegir una sección, tocar fuera del menú o presionar Escape.
+- No requiere SQL ni cambios en Supabase.

@@ -45,6 +45,11 @@
         <img src="assets/velora-logo.png" alt="Velora Travel" class="app-logo">
       </div>
 
+      <button class="sidebar-menu-toggle" id="sidebarMenuToggle" type="button" aria-label="Abrir menú" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+
+      <div class="sidebar-drawer" id="sidebarDrawer">
       <nav class="side-nav">
         <button class="nav-link active" data-view="dashboard"><span>⌂</span> Inicio</button>
         <button class="nav-link" data-view="clients"><span>◎</span> Clientes</button>
@@ -64,14 +69,14 @@
         <button class="edit-user-btn" id="editUserButton" type="button">Editar usuario</button>
         <button class="logout-btn" id="logoutButton" type="button">Cerrar sesión</button>
       </div>
+      </div>
 
-      <div class="sidebar-note">
+      <div class="sidebar-note" title="Supabase conectado">
         <span class="dot"></span>
-        Supabase conectado
-        <small>Clientes, cotizaciones, reservas y operación se comparten entre todos los usuarios autorizados.</small>
-        <em>Velora App · by Nuve Works</em>
+        <span class="sidebar-note-label">Supabase</span>
       </div>
     </aside>
+    <button class="sidebar-backdrop" id="sidebarBackdrop" type="button" aria-label="Cerrar menú"></button>
 
     <main class="main">
       <header class="topbar">

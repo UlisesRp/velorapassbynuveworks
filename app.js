@@ -736,3 +736,40 @@ setInterval(()=>{
 initSharedData();
 
 window.addEventListener("velora:user-profile-updated",()=>{ loadSharedData({silent:true}); });
+
+
+// ===================== V2.1.3 · MENÚ HAMBURGUESA =====================
+(() => {
+  const sidebar = document.querySelector(".sidebar");
+  const toggle = document.querySelector("#sidebarMenuToggle");
+  const backdrop = document.querySelector("#sidebarBackdrop");
+  if (!sidebar || !toggle || !backdrop) return;
+
+  const setMenu = (open) => {
+    sidebar.classList.toggle("menu-open", open);
+    backdrop.classList.toggle("show", open);
+    toggle.setAttribute("aria-expanded", String(open));
+    toggle.setAttribute("aria-label", open ? "Cerrar menú" : "Abrir menú");
+    document.body.classList.toggle("sidebar-menu-open", open);
+  };
+
+  toggle.addEventListener("click", () => {
+    setMenu(!sidebar.classList.contains("menu-open"));
+  });
+
+  backdrop.addEventListener("click", () => setMenu(false));
+
+  sidebar.querySelectorAll(".nav-link").forEach(btn => {
+    btn.addEventListener("click", () => setMenu(false));
+  });
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") setMenu(false);
+  });
+
+  window.addEventListener("resize", () => {
+    if (window.innerWidth < 700 && sidebar.classList.contains("menu-open")) {
+      // El drawer sigue disponible; no necesitamos cambiar el layout.
+    }
+  });
+})();

@@ -116,3 +116,12 @@
   flex:0 0 auto !important;
   margin-top:8px !important;
 }
+
+
+/* V2.1.3 · el drawer controla el overflow, no el sidebar completo */
+.sidebar{
+  overflow:visible !important;
+}
+.sidebar-drawer{
+  min-height:0;
+}
