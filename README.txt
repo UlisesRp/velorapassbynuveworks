@@ -189,3 +189,11 @@ V2.0.2 · FECHAS DE VUELO INTELIGENTES
 - Al convertir una cotización a Reserva/Confirmación, las fechas de vuelo se precargan con salida y regreso.
 - Las fechas de vuelo permanecen totalmente editables.
 - No requiere cambios en Supabase ni ejecutar SQL.
+
+
+V2.0.3 · HOTFIX VALIDACIÓN DE CORREO
+- Corregida la expresión regular del correo electrónico.
+- Ahora acepta correctamente correos válidos como usuario@gmail.com.
+- Sigue aceptando N/A.
+- Sigue rechazando formatos inválidos.
+- No requiere SQL ni cambios en Supabase.

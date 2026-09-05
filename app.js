@@ -121,7 +121,7 @@ async function loadSharedData({silent=false}={}){
 function isValidEmailOrNA(value){
   const clean=String(value||"").trim();
   if(clean.toUpperCase()==="N/A") return true;
-  return /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(clean);
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(clean);
 }
 
 function validateEmailOrNAField(input){
