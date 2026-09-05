@@ -1445,3 +1445,112 @@ body.auth-ready .shell{visibility:visible;opacity:1;transition:opacity .22s ease
     padding:10px 0 0;
   }
 }
+
+
+/* ===================== V2.1.2 · SIDEBAR SIEMPRE VISIBLE ===================== */
+html,
+body{
+  overflow-x:hidden;
+}
+
+.sidebar{
+  height:100vh;
+  height:100dvh;
+  max-height:100vh;
+  max-height:100dvh;
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+  box-sizing:border-box;
+}
+
+.sidebar-logo,
+.sidebar-brand{
+  flex:0 0 auto;
+}
+
+/* Menú central: ocupa solo el espacio disponible */
+.sidebar nav,
+.sidebar-nav{
+  flex:1 1 auto;
+  min-height:0;
+  overflow-y:auto;
+  overflow-x:hidden;
+  scrollbar-width:thin;
+  scrollbar-gutter:stable;
+}
+
+/* Compactar un poco el menú para pantallas de laptop */
+.sidebar nav a,
+.sidebar-nav a,
+.nav-link{
+  min-height:42px;
+  padding-top:10px;
+  padding-bottom:10px;
+  margin-top:2px;
+  margin-bottom:2px;
+}
+
+/* La sesión jamás se pierde debajo de la pantalla */
+.sidebar-account{
+  flex:0 0 auto;
+  margin-top:8px;
+  position:relative;
+  bottom:auto;
+  width:100%;
+  box-sizing:border-box;
+}
+
+/* Evitar cualquier barra horizontal culera en el sidebar */
+.sidebar,
+.sidebar *{
+  max-width:100%;
+}
+
+.sidebar nav,
+.sidebar-nav,
+.sidebar-account{
+  overflow-x:hidden;
+}
+
+/* Ajuste específico para alturas comunes de laptop */
+@media(max-height:820px){
+  .sidebar{
+    padding-top:16px;
+    padding-bottom:12px;
+  }
+
+  .sidebar-logo img,
+  .sidebar-brand img{
+    max-height:112px;
+  }
+
+  .sidebar nav a,
+  .sidebar-nav a,
+  .nav-link{
+    min-height:38px;
+    padding-top:8px;
+    padding-bottom:8px;
+    font-size:13px;
+  }
+
+  .sidebar-account{
+    padding-top:10px;
+    padding-bottom:10px;
+  }
+}
+
+@media(max-height:700px){
+  .sidebar-logo img,
+  .sidebar-brand img{
+    max-height:88px;
+  }
+
+  .sidebar nav a,
+  .sidebar-nav a,
+  .nav-link{
+    min-height:34px;
+    padding-top:6px;
+    padding-bottom:6px;
+  }
+}

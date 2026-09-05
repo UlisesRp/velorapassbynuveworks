@@ -98,3 +98,21 @@
     grid-column:span 1;
   }
 }
+
+
+/* V2.1.2 · sidebar responsivo en altura */
+.sidebar{
+  height:100dvh !important;
+  max-height:100dvh !important;
+  overflow:hidden !important;
+}
+.sidebar-nav{
+  flex:1 1 auto !important;
+  min-height:0 !important;
+  overflow-y:auto !important;
+  overflow-x:hidden !important;
+}
+.sidebar-account{
+  flex:0 0 auto !important;
+  margin-top:8px !important;
+}

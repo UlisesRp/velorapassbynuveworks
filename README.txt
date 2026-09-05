@@ -249,3 +249,14 @@ V2.1.1 · POLÍTICAS Y ÁREA DE FIRMA
 
 NOTA:
 Las políticas fuente están redactadas específicamente para Velora Travel.
+
+
+V2.1.2 · HOTFIX SIDEBAR
+=======================
+- El sidebar queda limitado al alto real de la pantalla.
+- "Sesión activa" y "Cerrar sesión" permanecen siempre accesibles.
+- El menú central usa únicamente el espacio disponible.
+- Si la pantalla tiene poca altura, solo el menú hace scroll vertical.
+- Eliminado el scroll horizontal del sidebar.
+- Menú ligeramente más compacto en laptops.
+- No requiere SQL ni cambios en Supabase.
