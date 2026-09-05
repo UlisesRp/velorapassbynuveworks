@@ -285,3 +285,14 @@ V2.1.4 · HOTFIX DRAWER REAL
 - Supabase queda reducido a un indicador circular verde.
 - El panel sigue teniendo scroll vertical si la altura es reducida.
 - No requiere SQL ni cambios en Supabase.
+
+
+V2.1.5 · HOTFIX CLICS DEL MENÚ
+==============================
+- Corregido el orden de capas del menú hamburguesa.
+- El backdrop gris estaba por encima del sidebar y absorbía los clics.
+- Inicio, Clientes, Nueva cotización, Cotizaciones, Reservas, Pagos,
+  Calendario, Reportes, Confirmaciones, Editar usuario y Cerrar sesión
+  vuelven a ser clicables.
+- No se modificó el diseño del drawer V2.1.4.
+- No requiere SQL ni cambios en Supabase.

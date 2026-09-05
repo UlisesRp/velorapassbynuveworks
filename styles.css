@@ -2113,3 +2113,35 @@ body.sidebar-menu-open{
     max-width:40px !important;
   }
 }
+
+
+/* ===================== V2.1.5 · HOTFIX CLICS DEL DRAWER ===================== */
+/*
+  El backdrop estaba en un stacking context superior al sidebar.
+  El drawer se veía, pero la capa gris interceptaba todos los clics.
+*/
+.sidebar,
+.sidebar.menu-open{
+  z-index:140 !important;
+}
+
+.sidebar-drawer{
+  z-index:150 !important;
+  pointer-events:none !important;
+}
+
+.sidebar.menu-open .sidebar-drawer{
+  pointer-events:auto !important;
+}
+
+.sidebar-backdrop{
+  z-index:120 !important;
+}
+
+/* Asegurar que todos los controles reales del drawer reciban interacción */
+.sidebar.menu-open .sidebar-drawer .nav-link,
+.sidebar.menu-open .sidebar-drawer button,
+.sidebar.menu-open .sidebar-drawer input,
+.sidebar.menu-open .sidebar-drawer select{
+  pointer-events:auto !important;
+}
