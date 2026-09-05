@@ -329,3 +329,28 @@ FUNCIONES NUEVAS:
 
 NO REQUIERE SQL:
 La tabla events y las políticas necesarias ya existen en Velora App V2.
+
+
+V2.2.1 · AUDITORÍA GLOBAL DE FORMULARIOS
+========================================
+Se corrigió la causa del encimado de campos, no solo la pantalla de Calendario.
+
+REVISIÓN APLICADA A:
+- Clientes
+- Nueva cotización
+- Reservas
+- Pagos
+- Calendario / Nuevo evento
+- Confirmaciones
+- Captura de vuelos y servicios
+
+CAMBIOS:
+- Nuevo evento usa una sola columna porque vive en un panel angosto.
+- Clientes y Pagos también usan una sola columna en sus paneles laterales.
+- Reserva cambia automáticamente a una columna cuando SU PROPIO panel queda angosto.
+- Inputs, selects, fechas, horas y textareas nunca pueden exceder su contenedor.
+- Todas las celdas de grid reciben min-width: 0.
+- Botoneras pueden bajar de línea en lugar de montarse.
+- A 760 px o menos, toda captura pasa obligatoriamente a una columna.
+- A 440 px o menos se ajusta el padding para conservar ancho útil.
+- No requiere SQL ni cambios en Supabase.

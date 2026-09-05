@@ -479,3 +479,189 @@
     border-radius:18px;
   }
 }
+
+
+/* ===================== V2.2.1 · AUDITORÍA GLOBAL DE LAYOUT ===================== */
+/*
+  Regla defensiva para TODOS los formularios:
+  ningún control puede forzar el ancho de su columna ni montarse sobre otro.
+*/
+*,
+*::before,
+*::after{
+  box-sizing:border-box;
+}
+
+.panel,
+.form-layout,
+.form-section,
+.fields-grid,
+.fields-grid > *,
+.field,
+.ops-two-col,
+.ops-two-col > *,
+.calendar-layout,
+.calendar-layout > *,
+.quote-items,
+.flight-capture,
+.flight-capture > *{
+  min-width:0;
+}
+
+.field{
+  width:100%;
+  min-width:0;
+}
+
+.field input,
+.field select,
+.field textarea,
+.ops-form input,
+.ops-form select,
+.ops-form textarea,
+.voucher-form input,
+.voucher-form select,
+.voucher-form textarea{
+  display:block;
+  width:100%;
+  max-width:100%;
+  min-width:0;
+  box-sizing:border-box;
+}
+
+/* Los controles nativos de fecha/hora son especialmente propensos a desbordar. */
+input[type="date"],
+input[type="time"],
+input[type="datetime-local"],
+input[type="month"]{
+  width:100%;
+  max-width:100%;
+  min-width:0;
+  font-variant-numeric:tabular-nums;
+}
+
+/*
+  Formularios que viven deliberadamente en columnas angostas:
+  una sola columna es más segura y legible.
+*/
+#clientForm .fields-grid,
+#paymentForm .fields-grid,
+#eventForm .fields-grid{
+  grid-template-columns:minmax(0,1fr) !important;
+}
+
+#clientForm .span-2,
+#paymentForm .span-2,
+#eventForm .span-2{
+  grid-column:1 / -1 !important;
+}
+
+/*
+  Reserva: conserva 2 columnas solo cuando el propio formulario tiene espacio.
+  No dependemos del ancho total de la ventana.
+*/
+#reservationForm{
+  container-type:inline-size;
+}
+
+@container (max-width:560px){
+  #reservationForm .fields-grid{
+    grid-template-columns:minmax(0,1fr) !important;
+  }
+  #reservationForm .span-2{
+    grid-column:1 / -1 !important;
+  }
+}
+
+/* Fallback para navegadores sin container queries y para pantallas compactas. */
+@media(max-width:900px){
+  #reservationForm .fields-grid{
+    grid-template-columns:minmax(0,1fr) !important;
+  }
+  #reservationForm .span-2{
+    grid-column:1 / -1 !important;
+  }
+}
+
+/* Separación vertical consistente: nada debe "encimarse". */
+.ops-form .fields-grid,
+.voucher-form .fields-grid{
+  row-gap:16px;
+}
+
+.ops-form .field,
+.voucher-form .field{
+  align-content:start;
+}
+
+/* Selects y textos largos tampoco deben ensanchar la tarjeta. */
+select,
+option,
+.field span,
+.field small{
+  max-width:100%;
+}
+
+.field span,
+.field small{
+  overflow-wrap:anywhere;
+}
+
+/* Botoneras: si ya no caben, bajan de línea en vez de invadir otros campos. */
+.form-actions,
+.panel-head,
+.section-title-row,
+.ops-card-actions,
+.calendar-toolbar{
+  min-width:0;
+}
+
+.form-actions{
+  flex-wrap:wrap;
+}
+
+.form-actions > button,
+.form-actions > a{
+  max-width:100%;
+}
+
+/* En pantallas realmente angostas, toda rejilla de captura queda a una columna. */
+@media(max-width:760px){
+  .fields-grid,
+  .reservations-layout .fields-grid,
+  .flight-capture{
+    grid-template-columns:minmax(0,1fr) !important;
+  }
+
+  .span-2,
+  .fields-grid .span-2{
+    grid-column:1 / -1 !important;
+  }
+
+  .panel{
+    min-width:0;
+    overflow:visible;
+  }
+
+  .form-actions{
+    justify-content:stretch;
+  }
+
+  .form-actions > button,
+  .form-actions > a{
+    width:100%;
+  }
+}
+
+/* Móviles pequeños: padding suficiente sin robar ancho útil. */
+@media(max-width:440px){
+  .ops-form.panel,
+  .voucher-form.panel{
+    padding-left:16px;
+    padding-right:16px;
+  }
+
+  .fields-grid{
+    gap:14px;
+  }
+}

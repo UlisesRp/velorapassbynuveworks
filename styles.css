@@ -2145,3 +2145,12 @@ body.sidebar-menu-open{
 .sidebar.menu-open .sidebar-drawer select{
   pointer-events:auto !important;
 }
+
+
+/* V2.2.1 · seguridad base contra overflow de controles */
+input,
+select,
+textarea,
+button{
+  box-sizing:border-box;
+}
