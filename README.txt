@@ -272,3 +272,16 @@ V2.1.3 · MENÚ HAMBURGUESA
 - El drawer se abre sobre el contenido y no altera el ancho de la página.
 - Se cierra al elegir una sección, tocar fuera del menú o presionar Escape.
 - No requiere SQL ni cambios en Supabase.
+
+
+V2.1.4 · HOTFIX DRAWER REAL
+===========================
+- Corregido el menú V2.1.3 que quedaba aplastado dentro del rail.
+- Causa: una regla antigua max-width:100% impedía que el sidebar creciera.
+- El rail ahora mantiene SIEMPRE 76 px.
+- La hamburguesa abre un panel independiente de 286 px hacia la derecha.
+- Textos, correo y botones ya no se comprimen.
+- Añadida cabecera del menú con botón X.
+- Supabase queda reducido a un indicador circular verde.
+- El panel sigue teniendo scroll vertical si la altura es reducida.
+- No requiere SQL ni cambios en Supabase.

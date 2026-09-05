@@ -743,6 +743,7 @@ window.addEventListener("velora:user-profile-updated",()=>{ loadSharedData({sile
   const sidebar = document.querySelector(".sidebar");
   const toggle = document.querySelector("#sidebarMenuToggle");
   const backdrop = document.querySelector("#sidebarBackdrop");
+  const drawerClose = document.querySelector("#sidebarDrawerClose");
   if (!sidebar || !toggle || !backdrop) return;
 
   const setMenu = (open) => {
@@ -758,6 +759,7 @@ window.addEventListener("velora:user-profile-updated",()=>{ loadSharedData({sile
   });
 
   backdrop.addEventListener("click", () => setMenu(false));
+  drawerClose?.addEventListener("click", () => setMenu(false));
 
   sidebar.querySelectorAll(".nav-link").forEach(btn => {
     btn.addEventListener("click", () => setMenu(false));
