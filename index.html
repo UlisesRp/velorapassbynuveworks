@@ -772,6 +772,33 @@
     </section>
   </div>
 
+  <div class="hotel-select-modal-backdrop" id="hotelSelectModal">
+    <section class="hotel-select-modal" role="dialog" aria-modal="true" aria-labelledby="hotelSelectTitle">
+      <button class="hotel-select-close" id="hotelSelectClose" type="button" aria-label="Cancelar">×</button>
+
+      <p class="eyebrow">CREAR RESERVA</p>
+      <h2 id="hotelSelectTitle">Selecciona el hospedaje confirmado</h2>
+      <p class="hotel-select-copy">
+        Esta cotización tiene varias opciones de hospedaje. Elige únicamente el hotel que se enviará en la reserva al cliente.
+      </p>
+
+      <div id="hotelSelectOptions" class="hotel-select-options"></div>
+
+      <div class="hotel-select-summary">
+        <div>
+          <span>TOTAL DE LA RESERVA</span>
+          <strong id="hotelSelectTotal">$0.00</strong>
+          <small>Se recalcula usando solamente el hospedaje seleccionado.</small>
+        </div>
+      </div>
+
+      <div class="hotel-select-actions">
+        <button class="ghost-btn" id="hotelSelectCancel" type="button">Cancelar</button>
+        <button class="primary-btn" id="hotelSelectConfirm" type="button" disabled>Usar este hotel</button>
+      </div>
+    </section>
+  </div>
+
   <div class="toast" id="toast"></div>
 
   <div class="modal-backdrop" id="documentModal">

@@ -442,6 +442,117 @@
     toast("Reserva firmada y liquidada cargada en confirmación final");
   };
 
+  // V2.3.1 · Si una cotización contiene varias opciones de hospedaje,
+  // la reserva obliga a confirmar cuál es la definitiva.
+  let hotelSelectionResolver=null;
+  let hotelSelectionContext=null;
+
+  const isHotelQuoteItem=item=>
+    String(item?.category||"").trim().toLowerCase()==="hospedaje";
+
+  function reservationTotalWithHotelSelection(q,selectedIndex){
+    const items=Array.isArray(q?.items)?q.items:[];
+    const removedHotelAmount=items.reduce((sum,item,index)=>{
+      if(!isHotelQuoteItem(item) || index===selectedIndex)return sum;
+      return sum+Math.max(0,num(item.amount));
+    },0);
+    return Math.max(0,num(q.total)-removedHotelAmount);
+  }
+
+  function closeHotelSelection(result=null){
+    $("#hotelSelectModal")?.classList.remove("open");
+    if(hotelSelectionResolver){
+      const resolve=hotelSelectionResolver;
+      hotelSelectionResolver=null;
+      hotelSelectionContext=null;
+      resolve(result);
+    }
+  }
+
+  function chooseHotelForReservation(q){
+    const items=Array.isArray(q?.items)?q.items:[];
+    const hotels=items
+      .map((item,index)=>({item,index}))
+      .filter(x=>isHotelQuoteItem(x.item));
+
+    if(hotels.length===0){
+      return Promise.resolve({
+        selectedHotelIndex:null,
+        selectedHotel:null,
+        reservationTotal:num(q.total)
+      });
+    }
+
+    if(hotels.length===1){
+      return Promise.resolve({
+        selectedHotelIndex:hotels[0].index,
+        selectedHotel:hotels[0].item,
+        reservationTotal:num(q.total)
+      });
+    }
+
+    const modal=$("#hotelSelectModal");
+    const root=$("#hotelSelectOptions");
+    const confirm=$("#hotelSelectConfirm");
+    const total=$("#hotelSelectTotal");
+
+    hotelSelectionContext={q,hotels,selectedIndex:null};
+
+    root.innerHTML=hotels.map(({item,index},position)=>{
+      const image=item.hotelImage
+        ? `<img src="${item.hotelImage}" alt="${esc(item.concept||`Hospedaje ${position+1}`)}">`
+        : `<div class="hotel-select-placeholder">⌂</div>`;
+
+      return `
+        <label class="hotel-select-option">
+          <input type="radio" name="reservationHotelOption" value="${index}">
+          <div class="hotel-select-visual">${image}</div>
+          <div class="hotel-select-info">
+            <span>OPCIÓN ${position+1}</span>
+            <strong>${esc(item.concept||`Hospedaje ${position+1}`)}</strong>
+            <p>${esc(item.description||"Sin detalle adicional")}</p>
+            <small>Importe interno: ${money(item.amount)}</small>
+          </div>
+        </label>`;
+    }).join("");
+
+    total.textContent="Selecciona un hotel";
+    confirm.disabled=true;
+
+    root.querySelectorAll('input[name="reservationHotelOption"]').forEach(input=>{
+      input.addEventListener("change",()=>{
+        const selectedIndex=Number(input.value);
+        hotelSelectionContext.selectedIndex=selectedIndex;
+        total.textContent=money(reservationTotalWithHotelSelection(q,selectedIndex));
+        confirm.disabled=false;
+      });
+    });
+
+    modal.classList.add("open");
+
+    return new Promise(resolve=>{
+      hotelSelectionResolver=resolve;
+    });
+  }
+
+  $("#hotelSelectConfirm")?.addEventListener("click",()=>{
+    if(!hotelSelectionContext || hotelSelectionContext.selectedIndex===null)return;
+    const {q,selectedIndex}=hotelSelectionContext;
+    const selectedHotel=(q.items||[])[selectedIndex]||null;
+
+    closeHotelSelection({
+      selectedHotelIndex:selectedIndex,
+      selectedHotel,
+      reservationTotal:reservationTotalWithHotelSelection(q,selectedIndex)
+    });
+  });
+
+  $("#hotelSelectCancel")?.addEventListener("click",()=>closeHotelSelection(null));
+  $("#hotelSelectClose")?.addEventListener("click",()=>closeHotelSelection(null));
+  $("#hotelSelectModal")?.addEventListener("click",e=>{
+    if(e.target.id==="hotelSelectModal")closeHotelSelection(null);
+  });
+
   // Override legacy quote -> voucher flow: now quote -> reservation.
   window.convertQuoteToVoucher=async id=>{
     const q=quoteCache.find(x=>x.id===id);
@@ -452,12 +563,25 @@
       return;
     }
 
-    const publicServices=(q.items||[]).map(item=>({
-      category:item.category||"Servicio",
-      concept:item.concept||"",
-      description:item.description||"",
-      hotelImage:item.hotelImage||""
-    }));
+    const hotelChoice=await chooseHotelForReservation(q);
+    if(!hotelChoice){
+      toast("Conversión cancelada · no se creó la reserva");
+      return;
+    }
+
+    const publicServices=(q.items||[])
+      .filter((item,index)=>{
+        if(!isHotelQuoteItem(item))return true;
+        // Sin hoteles: no entra aquí. Con uno, pasa automático.
+        // Con varios: solo pasa el hospedaje confirmado.
+        return hotelChoice.selectedHotelIndex===null || index===hotelChoice.selectedHotelIndex;
+      })
+      .map(item=>({
+        category:item.category||"Servicio",
+        concept:item.concept||"",
+        description:item.description||"",
+        hotelImage:item.hotelImage||""
+      }));
 
     const payload={
       agency:agencyOf(q.agency),
@@ -470,7 +594,7 @@
       start_date:q.startDate,
       end_date:q.endDate,
       traveler_count:Math.max(1,num(q.adults ?? q.travelerCount)||1)+Math.max(0,num(q.minors)),
-      total:num(q.total),
+      total:num(hotelChoice.reservationTotal),
       status:"pending",
       requires_invoice:false,
       notes:q.notes||"",
@@ -484,6 +608,11 @@
         advisorEmail:q.advisorEmail||"",
         quoteFolio:q.folio,
         quoteAcceptedAt:q.acceptedAt||null,
+        selectedHotel:hotelChoice.selectedHotel ? {
+          concept:hotelChoice.selectedHotel.concept||"",
+          description:hotelChoice.selectedHotel.description||"",
+          hotelImage:hotelChoice.selectedHotel.hotelImage||""
+        } : null,
         services:publicServices,
         msiEnabled:Boolean(q.msiEnabled),
         paymentMethods:q.paymentMethods||"",
@@ -500,7 +629,12 @@
       .eq("id",q.id);
     if(updateError)console.error(updateError);
 
-    toast("Reserva creada · captura los datos de pasajeros antes de enviarla");
+    const hotelCount=(q.items||[]).filter(isHotelQuoteItem).length;
+    toast(
+      hotelCount>1
+        ? "Reserva creada con el hospedaje seleccionado · captura los pasajeros"
+        : "Reserva creada · captura los datos de pasajeros antes de enviarla"
+    );
     await Promise.all([loadSharedData({silent:true}),loadOps({silent:true})]);
     switchView("reservations");
     if(res) setTimeout(()=>window.v2EditReservation(res.id),120);

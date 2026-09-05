@@ -388,3 +388,17 @@ V2.3 · ADULTOS, MENORES Y PASAJEROS OBLIGATORIOS
 - La reserva pública muestra pasajeros.
 - Supabase bloquea la reserva pública y la firma si faltan pasajeros.
 - Ejecutar SUPABASE_V2.3_PASAJEROS_OBLIGATORIOS.sql.
+
+
+V2.3.1 · SELECCIÓN DE HOSPEDAJE AL CREAR RESERVA
+==================================================
+- Si la cotización no tiene hospedaje, la conversión sigue normalmente.
+- Si tiene 1 hospedaje, ese hotel pasa automáticamente a la reserva.
+- Si tiene 2 o más hospedajes, se abre un selector obligatorio antes de crear la reserva.
+- El selector muestra nombre, detalle, imagen (si existe) e importe interno de cada opción.
+- Solo el hotel confirmado se incluye en la reserva pública.
+- Vuelos, traslados, tours, seguros y demás servicios sí pasan completos.
+- El total de la reserva se recalcula quitando los importes de los hoteles no seleccionados.
+- Si se cancela el selector, NO se crea la reserva.
+- El hotel elegido queda guardado en reservations.payload.selectedHotel.
+- No requiere SQL ni cambios en Supabase.
