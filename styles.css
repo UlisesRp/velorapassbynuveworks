@@ -1327,3 +1327,121 @@ body.auth-ready .shell{visibility:visible;opacity:1;transition:opacity .22s ease
     box-shadow:none;
   }
 }
+
+
+/* ===================== V2.1.1 · POLÍTICAS + FIRMA DELIMITADA ===================== */
+.reservation-policies{
+  margin:0 30px 22px;
+  border:1px solid #ddcfaa;
+  background:#fffdf8;
+}
+.reservation-policies-intro{
+  padding:14px 16px 0;
+  color:#5c5356;
+  font-size:11px;
+  line-height:1.55;
+}
+.reservation-policies-details{
+  padding:12px 16px 16px;
+}
+.reservation-policies-details summary{
+  cursor:pointer;
+  color:#7b4658;
+  font-size:11px;
+  font-weight:800;
+  user-select:none;
+}
+.reservation-policies-scroll{
+  max-height:430px;
+  overflow:auto;
+  margin-top:12px;
+  padding:18px;
+  border:1px solid #e5ddd6;
+  border-radius:12px;
+  background:#fff;
+  color:#4f484a;
+  font:11px/1.62 "DM Sans",sans-serif;
+}
+.reservation-policies-scroll h3{
+  margin:0 0 6px;
+  color:#084a3d;
+  font:700 19px "Playfair Display",serif;
+}
+.reservation-policies-scroll .policy-brand{
+  margin:0 0 14px;
+  color:#a28233;
+  font-size:10px;
+  font-weight:900;
+  letter-spacing:.12em;
+}
+.reservation-policies-scroll h4{
+  margin:18px 0 7px;
+  color:#3d3337;
+  font-size:12px;
+  font-weight:900;
+}
+.reservation-policies-scroll p{
+  margin:0 0 8px;
+}
+.terms-check{
+  padding:12px 14px;
+  border:1px solid #ddcfaa;
+  border-radius:12px;
+  background:#fffaf0;
+}
+.reservation-signature-canvas-frame{
+  position:relative;
+  margin-top:8px;
+  padding:26px 12px 12px;
+  border:2px solid #bfa55a;
+  border-radius:14px;
+  background:#fff;
+  box-shadow:inset 0 0 0 1px rgba(191,165,90,.15);
+}
+.reservation-signature-canvas-title{
+  position:absolute;
+  top:-9px;
+  left:16px;
+  padding:2px 8px;
+  background:#fbf8f6;
+  color:#8b6d21;
+  font-size:9px;
+  font-weight:900;
+  letter-spacing:.12em;
+}
+#reservationSignaturePad{
+  display:block;
+  width:100%;
+  height:190px;
+  border:1px dashed #cfc1c5;
+  border-radius:10px;
+  background:
+    linear-gradient(#fffdfa,#fffdfa),
+    repeating-linear-gradient(0deg,transparent,transparent 31px,rgba(123,70,88,.05) 32px);
+  touch-action:none;
+  cursor:crosshair;
+}
+@media(max-width:700px){
+  .reservation-policies{
+    margin-left:20px;
+    margin-right:20px;
+  }
+  .reservation-policies-scroll{
+    max-height:360px;
+    padding:14px;
+  }
+  .reservation-signature-canvas-frame{
+    padding:24px 8px 8px;
+  }
+}
+@media print{
+  .reservation-policies-details{
+    padding-bottom:10px;
+  }
+  .reservation-policies-scroll{
+    max-height:none;
+    overflow:visible;
+    border:0;
+    padding:10px 0 0;
+  }
+}

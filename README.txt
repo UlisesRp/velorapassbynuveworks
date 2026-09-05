@@ -232,3 +232,20 @@ IMPORTANTE:
 - Ejecutar el SQL V2.1 una sola vez.
 - Conservar el supabase-client.js real del proyecto.
 - La migración NO borra registros existentes.
+
+
+V2.1.1 · POLÍTICAS Y ÁREA DE FIRMA
+==================================
+- El área de firma ahora está claramente delimitada con borde, fondo y etiqueta "ÁREA DE FIRMA".
+- Se agregaron antes de la firma las Políticas y Condiciones Generales de Servicio de Velora Travel.
+- Las políticas se tomaron del documento Velora_Travel_Politicas_y_Condiciones.docx.
+- El cliente debe marcar dos aceptaciones:
+  1) que revisó la información de la reserva;
+  2) que leyó y acepta las Políticas y Condiciones.
+- La firma guarda también la versión de políticas aceptada: VELORA-POLITICAS-V1.
+- Supabase registra terms_version y terms_accepted_at.
+- Ejecutar SUPABASE_V2.1.1_POLITICAS_ACEPTADAS.sql una sola vez.
+- La migración no borra registros existentes.
+
+NOTA:
+Las políticas fuente están redactadas específicamente para Velora Travel.

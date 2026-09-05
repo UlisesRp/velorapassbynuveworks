@@ -174,6 +174,10 @@ $("#signReservationButton").addEventListener("click",async()=>{
     toast("Debes confirmar que revisaste los datos de la reserva");
     return;
   }
+  if(!$("#reservationTermsCheck").checked){
+    toast("Debes leer y aceptar las Políticas y Condiciones");
+    return;
+  }
   if(name.length<3){
     toast("Escribe el nombre de quien firma");
     return;
@@ -191,7 +195,8 @@ $("#signReservationButton").addEventListener("click",async()=>{
   const {data,error}=await db.rpc("sign_reservation",{
     p_token:token,
     p_signer_name:name,
-    p_signature_data:signature
+    p_signature_data:signature,
+    p_terms_version:"VELORA-POLITICAS-V1"
   });
 
   if(error||!data){
